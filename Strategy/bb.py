@@ -1,1 +1,7 @@
-print('s')
+
+
+
+
+
+class strategy:
+    pass
