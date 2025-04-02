@@ -29,7 +29,7 @@ logging.basicConfig(level=logging.DEBUG,filename=logpath,datefmt="%d-%m-%y %H:%M
 logger= logging.getLogger("AngelBroking")
 
 class balance:
-     def __init__(self, BalancFe):
+     def __init__(self, Balance):
         self.Account= dict()
         self.totalaccount= []
         # print(Balance.keys())
