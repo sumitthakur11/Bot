@@ -155,7 +155,7 @@ class SMARTAPI(object) :
 
 class HTTP(SMARTAPI):
     def __init__(self,user,api_key ='vMoFaxjs', username = 'I9500',pwd = '7536',token=''):
-        super().__init__(self,api_key , username ,pwd)
+        super().__init__(self,api_key , username ,pwd,token)
         self.user=user
         self.smartApi=self.client_()
         print(api_key , username ,pwd)
