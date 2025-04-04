@@ -25,10 +25,12 @@ import os
 import pathlib
 
 path= os.getcwd()
+path= os.path.join(path,'Botkapil')
 path= str(path)
-logpath= os.path.join(path,'botlogs')
-logging.basicConfig(level=logging.DEBUG,filename=logpath,datefmt="%d-%m-%y %H:%M:%S")
-logger= logging.getLogger("AngelBroking")
+logpath= os.path.join(path,'botlogs/upstox.logs')
+logpath= os.path.normpath(logpath)
+logging.basicConfig(level=logging.DEBUG,filename=str(logpath),format="%(asctime)s - %(levelname)s - %(message)s",datefmt="%d-%m-%y %H:%M:%S")
+logger= logging.getLogger("UpstoxBroker")
 
 class balance:
      def __init__(self, Balance):

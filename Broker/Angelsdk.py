@@ -1,6 +1,7 @@
 
-# from .SmartApi.smartConnect import SmartConnect
-# from .SmartApi.smartWebSocketV2 import SmartWebSocketV2
+
+from SmartApi import smartConnect
+from SmartApi import smartWebSocketV2
 import pyotp
 import asyncio
 import base64
@@ -12,20 +13,26 @@ from random import random
 import time
 import uuid
 import requests
-import websockets
-import websocket
 import threading
 import pandas as pd 
 import datetime
 import math
 import pytz
 import os 
-import pathlib
+import pathlib as p
+from stat import *
 
 path= os.getcwd()
+path= os.path.join(path,'Botkapil')
 path= str(path)
-logpath= os.path.join(path,'botlogs')
-logging.basicConfig(level=logging.DEBUG,filename=logpath,datefmt="%d-%m-%y %H:%M:%S")
+logpath= os.path.join(path,'botlogs/Angelbroker.logs')
+logpath= os.path.normpath(logpath)
+# logpath= os.path.join(logpath,'Angelbroker.logs')
+print(logpath,'logpath')
+
+
+logging.basicConfig(level=logging.DEBUG,filename=str(logpath),format="%(asctime)s - %(levelname)s - %(message)s",datefmt="%d-%m-%y %H:%M:%S")
+
 logger= logging.getLogger("AngelBroking")
 
 class balance:
@@ -97,7 +104,7 @@ class order:
 
 class SMARTAPI(object) :
     
-    def __init__(self, user,api_key ='vMoFaxjs', username = 'I9500',pwd = '7536',token=''):
+    def __init__(self, user,api_key ='9XSMVuAe', username = 'V40809',pwd = '5717',token="4GYRKXNFGXZU26IO3SJU5ZUCYM"):
         self.api= api_key 
         self.username=username
         self.pwd = pwd
@@ -105,13 +112,13 @@ class SMARTAPI(object) :
         self.authToken= None
         self.refreshToken= None
         self.feedToken = None
-        self.smartApi = SmartConnect(api_key)
+        self.smartApi = smartConnect.SmartConnect(api_key)
         self.userid= user
         self.token = token   #"46PG2HG3ST4NDTRD4FUUNVDC6Q"
         self.decimals = 10**6
         self.occurred= 0
 
-        # self.smartAPI_Login()
+        self.smartAPI_Login()
     def smartAPI_Login(self):
         res= None
         self.occurred+=self.occurred
@@ -120,7 +127,10 @@ class SMARTAPI(object) :
         except Exception as e:
             logger.error(f"Invalid Token: The provided token is not valid or {e}") 
             raise e
+
+
         data = self.smartApi.generateSession(self.username, self.pwd, totp)
+    
         
         if not data['status']:
             logger.error(data)
@@ -133,10 +143,14 @@ class SMARTAPI(object) :
             self.smartApi.generateToken(tokendict['refreshToken'])
             res = self.smartApi.getProfile(tokendict['refreshToken'])
             res = res['data']['exchanges']
-            filepath= path+'/Broker/{self.username}.json'
-            out=open(filepath, 'a')
+            filepath= os.path.join(path,f'Broker/{self.username}.json')
+            filepath= os.path.normpath(filepath)
+
+            print(filepath)
+            
+            out=open(filepath, 'w')
             json.dump(tokendict,out,indent=6)
-            out.close()
+            # out.close()
 
             
         return self.smartApi
@@ -154,7 +168,7 @@ class SMARTAPI(object) :
     
 
 class HTTP(SMARTAPI):
-    def __init__(self,user,api_key ='vMoFaxjs', username = 'I9500',pwd = '7536',token=''):
+    def __init__(self,user,api_key ='9XSMVuAe', username = 'V40809',pwd = '5717',token="4GYRKXNFGXZU26IO3SJU5ZUCYM"):
         super().__init__(self,api_key , username ,pwd,token)
         self.user=user
         self.smartApi=self.client_()
@@ -162,16 +176,14 @@ class HTTP(SMARTAPI):
     
     
 
-        
-    
-    
     def client_(self):
         self.client= self.get_angel_client()
         token=self.client['authToken'].split(' ')[1]
-        self.smartApi = SmartConnect(self.api,access_token=token)
+        self.smartApi = smartConnect.SmartConnect(self.api,access_token=token)
         return self.smartApi
     
     
+
 
     def wallet(self):
     
@@ -234,17 +246,6 @@ class HTTP(SMARTAPI):
                 
 
    
-    def get_coin_balance(self): 
-        # print(self.key,self.secret,self.passphrase)
-        
-        try :
-            return self.submit_request(
-                method = "GET",
-                path = "/account"
-            )
-        except Exception as e :
-            return e
-    
     
     
     
@@ -383,7 +384,7 @@ class HTTP(SMARTAPI):
         orderobject.save()
         return orderid
 class WebSocketConnect(SMARTAPI):
-   def __init__(self, user,api_key ='vMoFaxjs', username = 'I9500',pwd = '7536',update_depth=''):
+   def __init__(self, user,api_key ='9XSMVuAe',  username = 'V40809',pwd = '5717',token="4GYRKXNFGXZU26IO3SJU5ZUCYM",update_depth=''):
         super().__init__(user,api_key , username ,pwd)
         self.update_depth= update_depth
         
@@ -403,7 +404,7 @@ class WebSocketConnect(SMARTAPI):
 
         
 
-        self.sws = SmartWebSocketV2(authToken, self.api, self.username, feedToken,
+        self.sws = smartWebSocketV2.SmartWebSocketV2(authToken, self.api, self.username, feedToken,
                                     max_retry_attempt=2, retry_strategy=0, retry_delay=10, retry_duration=30)
 
         self.correlation_id = "abcde"   
@@ -462,3 +463,6 @@ class WebSocketConnect(SMARTAPI):
 
     
 
+# a= HTTP(1)
+# res= a.wallet()
+# print(res)

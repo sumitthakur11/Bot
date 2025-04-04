@@ -6,10 +6,13 @@ import os
 import sys
 
 path= os.getcwd()
+path= os.path.join(path,'Botkapil')
 path= str(path)
-logpath= os.path.join(path,'botlogs')
-logging.basicConfig(level=logging.DEBUG,filename=logpath,datefmt="%d-%m-%y %H:%M:%S")
-logger= logging.getLogger("Backtest")
+logpath= os.path.join(path,'botlogs/backtest.logs')
+logpath= os.path.normpath(logpath)
+print(logpath,'logpath')
+logging.basicConfig(level=logging.DEBUG,filename=str(logpath),format="%(asctime)s - %(levelname)s - %(message)s",datefmt="%d-%m-%y %H:%M:%S")
+logger= logging.getLogger("BACKTEST")
 
 def scheduelbacktest():
     try:

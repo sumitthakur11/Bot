@@ -1,1 +1,16 @@
-{}
+
+{"strategy":{
+
+"BBLEN":14,
+"BBSTDEVE":2.1 ,
+"trend_period ":365,
+"vol_filter_length":15,
+"vol_ma_length":28,
+"trail_stop_pct":0.5,
+"trail_offset_pct":0.5,
+"sl_pct":2,
+"tp_pct":9
+}
+
+
+}

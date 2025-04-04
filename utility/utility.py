@@ -6,12 +6,16 @@ import pandas as pd
 import time as ts 
 import pytz
 
-path= os.getcwd()
-path= str(path)
-logpath= os.path.join(path,'botlogs')
-logging.basicConfig(level=logging.DEBUG,filename=logpath,datefmt="%d-%m-%y %H:%M:%S")
-logger= logging.getLogger("UTILITY")
 
+path= os.getcwd()
+path= os.path.join(path,'Botkapil')
+path= str(path)
+logpath= os.path.join(path,'botlogs/utility.logs')
+logpath= os.path.normpath(logpath)
+print(logpath,'logpath')
+logging.basicConfig(level=logging.DEBUG,filename=str(logpath),format="%(asctime)s - %(levelname)s - %(message)s",datefmt="%d-%m-%y %H:%M:%S")
+
+logger= logging.getLogger("UTILITY")
 
 class misc:
     def __init__(self):
