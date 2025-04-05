@@ -22,18 +22,17 @@ import os
 import pathlib as p
 from stat import *
 
-path= os.getcwd()
-path= os.path.join(path,'Botkapil')
+from BotKapil import env
+
+path= env.currenenv
+path= os.path.join(path,'BotKapil')
 path= str(path)
 logpath= os.path.join(path,'botlogs/Angelbroker.logs')
 logpath= os.path.normpath(logpath)
 # logpath= os.path.join(logpath,'Angelbroker.logs')
 print(logpath,'logpath')
+logger=env.setup_logger(logpath)
 
-
-logging.basicConfig(level=logging.DEBUG,filename=str(logpath),format="%(asctime)s - %(levelname)s - %(message)s",datefmt="%d-%m-%y %H:%M:%S")
-
-logger= logging.getLogger("AngelBroking")
 
 class balance:
      def __init__(self, Balance):
@@ -131,7 +130,7 @@ class SMARTAPI(object) :
 
         data = self.smartApi.generateSession(self.username, self.pwd, totp)
     
-        
+
         if not data['status']:
             logger.error(data)
         else:

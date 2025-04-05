@@ -4,15 +4,17 @@ from utility import utility
 import logging
 import os 
 import sys
+from BotKapil import env
 
-path= os.getcwd()
-path= os.path.join(path,'Botkapil')
+path= env.currenenv
+path= os.path.join(path,'BotKapil')
 path= str(path)
-logpath= os.path.join(path,'botlogs/backtest.logs')
+logpath= os.path.join(path,'botlogs/Angelbroker.logs')
 logpath= os.path.normpath(logpath)
+# logpath= os.path.join(logpath,'Angelbroker.logs')
 print(logpath,'logpath')
-logging.basicConfig(level=logging.DEBUG,filename=str(logpath),format="%(asctime)s - %(levelname)s - %(message)s",datefmt="%d-%m-%y %H:%M:%S")
-logger= logging.getLogger("BACKTEST")
+logger=env.setup_logger(logpath)
+
 
 def scheduelbacktest():
     try:

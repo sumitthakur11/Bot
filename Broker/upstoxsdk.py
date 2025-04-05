@@ -14,7 +14,6 @@ from random import random
 import time
 import uuid
 import requests
-import websockets
 import websocket
 import threading
 import pandas as pd 
@@ -23,14 +22,17 @@ import math
 import pytz
 import os 
 import pathlib
+from BotKapil import env
 
-path= os.getcwd()
-path= os.path.join(path,'Botkapil')
+path= env.currenenv
+path= os.path.join(path,'BotKapil')
 path= str(path)
 logpath= os.path.join(path,'botlogs/upstox.logs')
 logpath= os.path.normpath(logpath)
-logging.basicConfig(level=logging.DEBUG,filename=str(logpath),format="%(asctime)s - %(levelname)s - %(message)s",datefmt="%d-%m-%y %H:%M:%S")
-logger= logging.getLogger("UpstoxBroker")
+# logpath= os.path.join(logpath,'Angelbroker.logs')
+print(logpath,'logpath')
+logger=env.setup_logger(logpath)
+
 
 class balance:
      def __init__(self, Balance):
@@ -83,7 +85,7 @@ def searchscrip (Symbol,exchange='NFO',instrument=''):
             logger.error(err)
             raise err
 
-searchscrip('NIFTY',instrument='OPTIDX')     
+# searchscrip('NIFTY',instrument='OPTIDX')     
         
 
 class order:
@@ -262,7 +264,7 @@ class HTTP(upstoxclient):
     
     
     
-    def placeorder(self, orderparam,orderobject,STOPLOSS,PAPER):
+    def placeorder(self, orderparam,orderobject,STOPLOSS,STOBJ,PAPER):
         print(PAPER,'paper')
         print(orderparam)
         security_id=orderparam['symboltoken']

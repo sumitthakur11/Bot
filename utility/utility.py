@@ -1,22 +1,26 @@
-from Broker import upstoxsdk as upstox
+from BotKapil.Broker import upstoxsdk as upstox
 import os
 import logging
 import json
 import pandas as pd 
 import time as ts 
 import pytz
+from BotKapil import env
 
 
-path= os.getcwd()
-path= os.path.join(path,'Botkapil')
+# path= os.getcwd()
+path = env.currenenv
+path= env.currenenv
+path= os.path.join(path,'BotKapil')
 path= str(path)
 logpath= os.path.join(path,'botlogs/utility.logs')
 logpath= os.path.normpath(logpath)
+# logpath= os.path.join(logpath,'Angelbroker.logs')
 print(logpath,'logpath')
-logging.basicConfig(level=logging.DEBUG,filename=str(logpath),format="%(asctime)s - %(levelname)s - %(message)s",datefmt="%d-%m-%y %H:%M:%S")
 
-logger= logging.getLogger("UTILITY")
 
+
+logger=env.setup_logger(logpath)
 class misc:
     def __init__(self):
 
@@ -60,7 +64,7 @@ class misc:
             logger.error(f"check the orderobject function {e}")
 
     
-    def processorder (self,orderparams,atmcal=60,subclients=0,STOPLOSS=True,PAPER=True,makesymbol=True,advicecheck='',backtest=True):
+    def processorder (self,orderparams,atmcal=60,subclients=0,STOPLOSS=False,PAPER=True,makesymbol=True,advicecheck='',backtest=True):
         try:
             
             orderid=  []
@@ -71,8 +75,13 @@ class misc:
                 brokerlist= self.fetchaccounts()
                 for i in brokerlist:
                     broker= upstox.HTTP()
+                    checkopenorder= self.orderobject()
+                    checkopenorder=checkopenorder[checkopenorder['Account']==i['Account']]
+                    STOBJ=checkopenorder
+                    checkopenorder= checkopenorder['status'].iloc[-1]
+                    placeorders= True # left to  add more conditons 
                     if placeorders:
-                        order_ids=broker.placeorder(orderparams,self.orderobject,STOPLOSS,backtest)
+                        order_ids=broker.placeorder(orderparams,self.orderobject,checkopenorder,STOBJ,backtest)
                         
                         orderid.append(order_ids)
                         placeorders=False
@@ -86,9 +95,9 @@ class misc:
 
     def fetchaccounts(self):
         try:
-            path= path+f"config/account.csv"
-            if not os.path.exists(path):
-                os.makedirs(path)
+            logpath= path+f"config/account.csv"
+            if not os.path.exists(logpath):
+                os.makedirs(logpath)
 
 
             df= pd.read_csv(path+f"config/account.csv")
@@ -100,9 +109,9 @@ class misc:
 
     def fetchorders(self):
         try:
-            path= path+"data/liveorderdata/orderdata.csv"
-            if not os.path.exists(path):
-                os.makedirs(path)
+            logpath= path+"data/liveorderdata/orderdata.csv"
+            if not os.path.exists(logpath):
+                os.makedirs(logpath)
 
 
             df= pd.read_csv(path+f"config/account.csv")
@@ -111,17 +120,19 @@ class misc:
             logger.error(e)
 
     
-    def gettestdata(self):
+    def gettestdata(self,symbol):
         try:
-            path= path+"data/testdata/test.json"
-            if not os.path.exists(path):
-                os.makedirs(path)
+            logpath= "data/testdata/raw.json"
+            logpath= os.path.join(path,logpath)
+            if not os.path.exists(logpath):
+                os.makedirs(logpath)
 
 
-            df= pd.read_json(path+f"config/account.csv")
+            df= pd.read_json(logpath)
+            df=df[df["instrumentname"]==symbol.upper()]
             return df 
         except Exception as e :
-            logger.error(e)
+            logger.error(e,exc_info=True)
 
         
 
@@ -147,7 +158,7 @@ class misc:
                 self.ohlc = self.ohlc.reset_index()
                 return self.ohlc
         except Exception as e:
-                            logger.error(e)
+                            logger.error(e,exc_info=True)
 
 
 
