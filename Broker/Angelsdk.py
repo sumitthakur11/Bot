@@ -1,7 +1,7 @@
 
 
-from SmartApi import smartConnect
-from SmartApi import smartWebSocketV2
+from .SmartApi import smartConnect
+from .SmartApi import smartWebSocketV2
 import pyotp
 import asyncio
 import base64
@@ -117,7 +117,7 @@ class SMARTAPI(object) :
         self.decimals = 10**6
         self.occurred= 0
 
-        self.smartAPI_Login()
+        
     def smartAPI_Login(self):
         res= None
         self.occurred+=self.occurred
@@ -179,6 +179,7 @@ class HTTP(SMARTAPI):
         self.client= self.get_angel_client()
         token=self.client['authToken'].split(' ')[1]
         self.smartApi = smartConnect.SmartConnect(self.api,access_token=token)
+
         return self.smartApi
     
     
@@ -214,7 +215,7 @@ class HTTP(SMARTAPI):
     def candels(self,exchange,symboltoken,interval):
         print(exchange,symboltoken,interval)
         todate= datetime.datetime.today().astimezone(pytz.timezone('Asia/Kolkata'))
-        fromdate=todate- datetime.timedelta(days=20)
+        fromdate=todate- datetime.timedelta(days=100)
         todate= todate.strftime("%Y-%m-%d %H:%M")
         fromdate= fromdate.strftime("%Y-%m-%d %H:%M")
 
@@ -226,8 +227,9 @@ class HTTP(SMARTAPI):
         "todate": todate
         }
         candledetails= self.smartApi.getCandleData(candleParams)
-        columns= ['timestamp', 'open', 'high', 'low', 'close', 'volume']
+        columns= ['updated_at', 'open', 'high', 'low', 'Close', 'Volume']
         candledetails= pd.DataFrame(candledetails['data'],columns=columns)
+        candledetails['OI']=0
 
         return candledetails
                 
@@ -255,77 +257,20 @@ class HTTP(SMARTAPI):
     
 
     
-    
-    
-    
-    def placeorder(self, orderparam,orderobject,STOPLOSS,PAPER):
-        print(PAPER,'paper')
-        print(orderparam)
-        security_id=orderparam['symboltoken']
-        exchange_segment=orderparam['exchange']
-        transaction_type=orderparam['transactiontype']
-        product_type=orderparam['product_type']
-        quantity=orderparam['quantity']
-        order_type=orderparam['order_type']
-        price=orderparam['price']
-        stoploss=orderparam['sl']
-        orderid= None
-        minqty= None
-        if int(orderparam['Amount'])!=0 and  PAPER==False:
-            wallet = self.wallet()
-            minvalue= min(float(wallet['net']),orderparam['Amount'])
-            if orderparam['instrument']=='EQ':
-                minqty=int(math.floor(minvalue/float(orderparam['ltp'])))
-            else:
-                
-                
-                minqty=int((minvalue/int(orderparam['ltp']))/int(orderparam['lotsize']))*int(orderparam['lotsize'])
-                print(minqty)
-                minqty=int(min(minqty,int(orderparam['lotsize'])))
-        maxvalue=float(orderparam['Amount']) 
-        maxqty=int(math.floor(maxvalue/float(orderparam['ltp'])))
-
-        quantity=orderparam['quantity'] if minqty is None else minqty
-        quantity=orderparam['quantity']  if quantity== 0  else quantity
-        maxfinal= None
-        if PAPER:
-            maxfinal= max(int(quantity),int(maxqty))
-            orderparam['quantity']=maxfinal         
-
-        orderparams = {
-        "variety": "NORMAL",
-        "tradingsymbol": orderparam['tradingsymbol'],
-        "symboltoken":orderparam['symboltoken'],
-        "transactiontype": orderparam['transactiontype'],
-        "exchange": orderparam['exchange'],
-        "ordertype": orderparam['order_type'],
-        "producttype": orderparam['product_type'],
-        "duration": "DAY",
-        "price": orderparam['price'],
-        "squareoff": "0",
-        "stoploss": "0",
-        "quantity": quantity}
+    def uniqueno(self):
+        import uuid
+        return uuid.uuid1()
+    def closetrade(self, orderparam,PAPER):
         
         if not PAPER:
-            orderid = self.smartApi.placeOrder(orderparams)
-            orderparam['buyorderid']=orderid
-        orderparam['buyorderid']='PAPER'
-        orderparam['sellorderid']='PAPER'
-        
-        orderparam['user']=1
-        orderparam['status']=True
-        orderparam['avg_price']=orderparam['ltp']
-        orderparam['broker']='ANGEL'
-        if STOPLOSS:
-            if not PAPER:
 
                 orderparams1 = {
                         "variety": "NORMAL",
-                        "tradingsymbol": orderparam['tradingsymbol'],
-                        "symboltoken":orderparam['symboltoken'],
-                        "transactiontype": orderparam['transactiontype'],
+                        "tradingsymbol": orderparam['Symbol'],
+                        "symboltoken":orderparam['Token'],
+                        "transactiontype": orderparam['Transactiontype'],
                         "exchange": orderparam['exchange'],
-                        "ordertype": orderparam['SL'],
+                        "ordertype": orderparam['ordertype'],
                         "producttype": orderparam['product_type'],
                         "duration": "DAY",
                         "price": orderparam['price'],
@@ -335,15 +280,113 @@ class HTTP(SMARTAPI):
                         "quantity": orderparam['quantity']}
 
                 orderid = self.smartApi.placeOrder(orderparams1) 
-            
-            
-                orderparam['sellorderid']= orderid
-
-
+        else:
+                orderid  =self.uniqueno()
         
-        orderobject(data=orderparam)
-        
+
         return   orderid
+    
+    
+    def placeorder(self, orderparam,orderobject,PAPER):
+        try:
+
+            
+            print(PAPER,'paper')
+            print(orderparam)
+            security_id=orderparam['symboltoken']
+            exchange_segment=orderparam['exchange']
+            transaction_type=orderparam['transactiontype']
+            product_type=orderparam['product_type']
+            quantity=orderparam['quantity']
+            order_type=orderparam['order_type']
+            price=orderparam['price']
+            stoploss=orderparam['sl']
+            orderid= None
+            orderupdate= orderobject() 
+              
+            orderupdate['Backtest']= orderupdate['Backtest'].astype('object')      
+            orderupdate['Order_type']= orderupdate['Order_type'].astype('object')      
+
+
+            
+
+            minqty= None
+            if int(orderparam['Amount'])!=0 and  PAPER==False:
+                wallet = self.wallet()
+                minvalue= min(float(wallet['net']),orderparam['Amount'])
+                if orderparam['instrument']=='EQ':
+                    minqty=int(math.floor(minvalue/float(orderparam['ltp'])))
+                else:
+                    
+                    
+                    minqty=int((minvalue/int(orderparam['ltp']))/int(orderparam['lotsize']))*int(orderparam['lotsize'])
+                    print(minqty)
+                    minqty=int(min(minqty,int(orderparam['lotsize'])))
+            maxvalue=float(orderparam['Amount']) 
+            maxqty=int(math.floor(maxvalue/float(orderparam['ltp'])))
+
+            quantity=orderparam['quantity'] if minqty is None else minqty
+            quantity=orderparam['quantity']  if quantity== 0  else quantity
+            maxfinal= None
+            lastindex= len(orderupdate)
+            print(lastindex) 
+            if PAPER:
+                maxfinal= max(int(quantity),int(maxqty))
+                orderupdate.loc[lastindex,'Qty']=maxfinal         
+
+
+            orderparams = {
+            "variety": "NORMAL",
+            "tradingsymbol": orderparam['tradingsymbol'],
+            "symboltoken":orderparam['symboltoken'],
+            "transactiontype": orderparam['transactiontype'],
+            "exchange": orderparam['exchange'],
+            "ordertype": orderparam['order_type'],
+            "producttype": orderparam['product_type'],
+            "duration": "DAY",
+            "price": orderparam['price'],
+            "squareoff": "0",
+            "stoploss": "0",
+            "quantity": quantity}
+            if not PAPER:
+                orderid = self.smartApi.placeOrder(orderparams)
+                orderupdate.loc[lastindex,'Buyorderid']=orderid
+                orderupdate.loc[lastindex,'Backtest']=False
+
+                
+            else:
+
+                orderupdate.loc[lastindex,'Buyorderid']=self.uniqueno()
+                orderupdate.loc[lastindex,'Backtest']=True
+
+                
+            # orderparam['user']=1
+            orderupdate.loc[lastindex,'Status']=True
+            orderupdate.loc[lastindex,'AveragePrice']=orderparam['ltp']
+            orderupdate.loc[lastindex,'Broker']='ANGEL'
+            orderupdate.loc[lastindex,'Tradingsymbol']=orderparam['tradingsymbol']
+            orderupdate.loc[lastindex,'Token']=orderparam['symboltoken']
+            orderupdate.loc[lastindex,'Order_type']=orderparam['order_type']
+            orderupdate.loc[lastindex,'Transactiontype']=orderparam['transactiontype']
+            orderupdate.loc[lastindex,'Product_type']=orderparam['product_type']
+            orderupdate.loc[lastindex,'Sl']=orderparam['sl']
+            orderupdate.loc[lastindex,'Target']=orderparam['target']
+            orderupdate.loc[lastindex,'Trail']=orderparam['trail']
+            orderupdate.loc[lastindex,'Entrytime']=datetime.datetime.now()
+
+        
+
+
+
+
+            
+            orderobject(newdata=orderupdate)
+            
+            
+            return   orderid
+        except Exception as e:
+            logger.error(e,exc_info=True)
+    
     
     
     def gainersLosers(self,typedata):

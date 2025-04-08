@@ -1,10 +1,11 @@
+import time 
 import os 
 import logging
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from BotKapil.utility import utility
 from BotKapil.Strategy import bb
-
+from BotKapil.Broker import Angelsdk as angel
 from BotKapil import env
 
 path = env.currenenv
@@ -16,12 +17,18 @@ logpath= os.path.normpath(logpath)
 print(logpath,'logpath')
 logger=env.setup_logger(logpath)
 
-obj= utility.misc()
-raw= obj.gettestdata('nifty')
-print(raw.head())
-data= obj.buildcandels(raw,'5min')
-print(data.head())
-logger.info('test starts')
+utilis= utility.misc()
+# raw= utilis.gettestdata('nifty')
+
+# print(raw.head())
+# data= utilis.buildcandels(raw,'5min')
+# print(data.head())
+# logger.info('test starts')
+
+# obj = angel.HTTP(1)
+# candel= obj.candels('NSE','26000','FIVE_MINUTE')
+
+
 
 def test():
     try:
@@ -39,7 +46,7 @@ def test():
     except Exception as e:
         logger.error(f"Error in test: {e}")
     
-def tesbb():
+def tesbb(data):
     try:
 
         obj=bb.strategy()
@@ -48,8 +55,56 @@ def tesbb():
         logger.info('test end')
     except Exception as e:
         logger.error(e,exc_info=True)
+def testorder():
+    obj= utility.misc()
+    orderparam= dict()
 
-
+    orderparam['symboltoken']=26009
+    orderparam['exchange']='NSE'
+    orderparam['transactiontype']='BUY'
+    orderparam['product_type']='MIS'
+    orderparam['quantity']=1
+    orderparam['order_type']='MKT'
+    orderparam['price']=22000   
+    orderparam['sl']=10
+    orderparam['target']=10
+    orderparam['trail']=10
+    orderparam['Amount']=0
+    orderparam['quantity']=75
+    orderparam['ltp']=22900
+    orderparam['tradingsymbol']='NIFTY50'
+    order= obj.processorder(orderparam)
+    time.wait(0.5)
     
+def testmerge():
+    data=utilis.mergebacktest()
+    return data
 
-tesbb()
+def testclosorder():
+    data = utilis.closeorder()
+    print(data)
+
+
+# data=testmerge()
+# data= utilis.buildcandels(data,'5min')
+
+# tesbb(data)
+# testorder()
+times= time.time()
+# for _ in range(5):
+#     # tesbb()
+#     testorder()
+
+# print('normal',time.time()-times)
+from concurrent.futures import ThreadPoolExecutor
+times= time.time()
+
+threadobj=ThreadPoolExecutor(max_workers=5)
+
+# for _ in range(5):
+threadobj.submit(testorder)
+
+print('threading',time.time()-times)
+
+
+# testclosorder()

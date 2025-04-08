@@ -1,0 +1,357 @@
+07-04-25 14:40:17 - INFO - function called searchscrip
+07-04-25 14:41:07 - INFO - function called searchscrip
+07-04-25 14:41:51 - INFO - function called searchscrip
+07-04-25 14:42:21 - INFO - function called searchscrip
+07-04-25 14:46:49 - INFO - function called searchscrip
+07-04-25 14:54:22 - INFO - function called searchscrip
+07-04-25 14:58:08 - INFO - function called searchscrip
+07-04-25 15:00:12 - INFO - function called searchscrip
+07-04-25 15:01:07 - INFO - function called searchscrip
+07-04-25 15:01:44 - INFO - function called searchscrip
+07-04-25 15:02:52 - INFO - function called searchscrip
+07-04-25 15:05:00 - INFO - function called searchscrip
+07-04-25 15:06:31 - INFO - function called searchscrip
+07-04-25 15:14:18 - INFO - function called searchscrip
+07-04-25 15:15:49 - INFO - function called searchscrip
+07-04-25 15:17:27 - INFO - function called searchscrip
+07-04-25 15:19:42 - INFO - function called searchscrip
+07-04-25 15:25:39 - INFO - function called searchscrip
+07-04-25 15:27:14 - INFO - function called searchscrip
+07-04-25 15:32:12 - INFO - function called searchscrip
+07-04-25 15:32:40 - INFO - function called searchscrip
+08-04-25 00:54:43 - INFO - function called searchscrip
+08-04-25 00:55:42 - INFO - function called searchscrip
+08-04-25 01:01:33 - INFO - function called searchscrip
+08-04-25 01:05:42 - INFO - function called searchscrip
+08-04-25 01:06:27 - INFO - function called searchscrip
+08-04-25 01:08:13 - INFO - function called searchscrip
+08-04-25 01:10:49 - INFO - function called searchscrip
+08-04-25 01:11:55 - INFO - function called searchscrip
+08-04-25 01:14:19 - INFO - function called searchscrip
+08-04-25 01:27:00 - INFO - function called searchscrip
+08-04-25 01:46:10 - INFO - function called searchscrip
+08-04-25 01:48:57 - INFO - function called searchscrip
+08-04-25 01:49:18 - INFO - function called searchscrip
+08-04-25 01:50:42 - INFO - function called searchscrip
+08-04-25 01:52:00 - INFO - function called searchscrip
+08-04-25 01:59:54 - INFO - function called searchscrip
+08-04-25 02:00:22 - INFO - function called searchscrip
+08-04-25 02:02:24 - INFO - function called searchscrip
+08-04-25 15:26:37 - INFO - function called searchscrip
+08-04-25 15:27:43 - INFO - function called searchscrip
+08-04-25 15:29:46 - INFO - function called searchscrip
+08-04-25 15:31:09 - INFO - function called searchscrip
+08-04-25 15:32:17 - INFO - function called searchscrip
+08-04-25 15:34:56 - INFO - function called searchscrip
+08-04-25 15:37:11 - INFO - function called searchscrip
+08-04-25 15:42:46 - INFO - function called searchscrip
+08-04-25 15:46:55 - INFO - function called searchscrip
+08-04-25 15:51:51 - INFO - function called searchscrip
+08-04-25 15:54:09 - INFO - function called searchscrip
+08-04-25 15:56:23 - INFO - function called searchscrip
+08-04-25 15:57:37 - INFO - function called searchscrip
+08-04-25 15:59:51 - INFO - function called searchscrip
+08-04-25 16:03:39 - INFO - function called searchscrip
+08-04-25 16:05:10 - INFO - function called searchscrip
+08-04-25 16:06:19 - INFO - function called searchscrip
+08-04-25 16:07:40 - INFO - function called searchscrip
+08-04-25 16:08:16 - INFO - function called searchscrip
+08-04-25 22:48:15 - INFO - function called searchscrip
+08-04-25 23:42:25 - INFO - function called searchscrip
+08-04-25 23:47:05 - INFO - function called searchscrip
+08-04-25 23:52:31 - INFO - function called searchscrip
+08-04-25 23:55:12 - INFO - function called searchscrip
+09-04-25 00:06:55 - INFO - function called searchscrip
+09-04-25 00:10:13 - INFO - function called searchscrip
+09-04-25 00:14:13 - INFO - function called searchscrip
+09-04-25 00:16:48 - INFO - function called searchscrip
+09-04-25 00:21:36 - INFO - function called searchscrip
+09-04-25 00:23:36 - INFO - function called searchscrip
+09-04-25 00:31:39 - INFO - function called searchscrip
+09-04-25 00:32:28 - INFO - function called searchscrip
+09-04-25 00:40:07 - INFO - function called searchscrip
+09-04-25 00:40:08 - ERROR - 'method' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 305, in placeorder
+    orderupdate['Backtest']= orderobject['Backtest'].astype('object')
+                             ~~~~~~~~~~~^^^^^^^^^^^^
+TypeError: 'method' object is not subscriptable
+09-04-25 00:40:09 - ERROR - 'method' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 305, in placeorder
+    orderupdate['Backtest']= orderobject['Backtest'].astype('object')
+                             ~~~~~~~~~~~^^^^^^^^^^^^
+TypeError: 'method' object is not subscriptable
+09-04-25 00:40:10 - ERROR - 'method' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 305, in placeorder
+    orderupdate['Backtest']= orderobject['Backtest'].astype('object')
+                             ~~~~~~~~~~~^^^^^^^^^^^^
+TypeError: 'method' object is not subscriptable
+09-04-25 00:40:11 - ERROR - 'method' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 305, in placeorder
+    orderupdate['Backtest']= orderobject['Backtest'].astype('object')
+                             ~~~~~~~~~~~^^^^^^^^^^^^
+TypeError: 'method' object is not subscriptable
+09-04-25 00:40:12 - ERROR - 'method' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 305, in placeorder
+    orderupdate['Backtest']= orderobject['Backtest'].astype('object')
+                             ~~~~~~~~~~~^^^^^^^^^^^^
+TypeError: 'method' object is not subscriptable
+09-04-25 00:40:13 - ERROR - 'method' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 305, in placeorder
+    orderupdate['Backtest']= orderobject['Backtest'].astype('object')
+                             ~~~~~~~~~~~^^^^^^^^^^^^
+TypeError: 'method' object is not subscriptable
+09-04-25 00:41:52 - INFO - function called searchscrip
+09-04-25 00:41:53 - ERROR - 'method' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 305, in placeorder
+    orderupdate['Backtest']= orderobject['Backtest'].astype('object')
+                             ~~~~~~~~~~~^^^^^^^^^^^^
+TypeError: 'method' object is not subscriptable
+09-04-25 00:43:44 - INFO - function called searchscrip
+09-04-25 00:43:45 - ERROR - 'method' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 305, in placeorder
+    orderupdate['Backtest']= orderobject['Backtest'].astype('object')
+                             ~~~~~~~~~~~^^^^^^^^^^^^
+TypeError: 'method' object is not subscriptable
+09-04-25 00:45:13 - INFO - function called searchscrip
+09-04-25 00:50:56 - INFO - function called searchscrip
+09-04-25 00:53:17 - INFO - function called searchscrip
+09-04-25 00:53:18 - ERROR - 'Order_type'
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\indexes\base.py", line 3805, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas\\_libs\\hashtable_class_helper.pxi", line 7081, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas\\_libs\\hashtable_class_helper.pxi", line 7089, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Order_type'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 308, in placeorder
+    orderupdate['Order_type']= orderupdate['Order_type'].astype('object')
+                               ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\frame.py", line 4102, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Order_type'
+09-04-25 00:55:34 - INFO - function called searchscrip
+09-04-25 00:55:34 - ERROR - 'Order_type'
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\indexes\base.py", line 3805, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas\\_libs\\hashtable_class_helper.pxi", line 7081, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas\\_libs\\hashtable_class_helper.pxi", line 7089, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Order_type'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 308, in placeorder
+    orderupdate['Order_type']= orderupdate['Order_type'].astype('object')
+                               ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\frame.py", line 4102, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Order_type'
+09-04-25 00:55:34 - ERROR - 'Order_type'
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\indexes\base.py", line 3805, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas\\_libs\\hashtable_class_helper.pxi", line 7081, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas\\_libs\\hashtable_class_helper.pxi", line 7089, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Order_type'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 308, in placeorder
+    orderupdate['Order_type']= orderupdate['Order_type'].astype('object')
+                               ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\frame.py", line 4102, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Order_type'
+09-04-25 00:55:34 - ERROR - 'Order_type'
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\indexes\base.py", line 3805, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas\\_libs\\hashtable_class_helper.pxi", line 7081, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas\\_libs\\hashtable_class_helper.pxi", line 7089, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Order_type'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 308, in placeorder
+    orderupdate['Order_type']= orderupdate['Order_type'].astype('object')
+                               ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\frame.py", line 4102, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Order_type'
+09-04-25 00:55:34 - ERROR - 'Order_type'
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\indexes\base.py", line 3805, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas\\_libs\\hashtable_class_helper.pxi", line 7081, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas\\_libs\\hashtable_class_helper.pxi", line 7089, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Order_type'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 308, in placeorder
+    orderupdate['Order_type']= orderupdate['Order_type'].astype('object')
+                               ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\frame.py", line 4102, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Order_type'
+09-04-25 00:55:34 - ERROR - 'Order_type'
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\indexes\base.py", line 3805, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas\\_libs\\hashtable_class_helper.pxi", line 7081, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas\\_libs\\hashtable_class_helper.pxi", line 7089, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Order_type'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 308, in placeorder
+    orderupdate['Order_type']= orderupdate['Order_type'].astype('object')
+                               ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\frame.py", line 4102, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Order_type'
+09-04-25 00:58:16 - INFO - function called searchscrip
+09-04-25 00:58:16 - ERROR - 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 307, in placeorder
+    orderupdate['Backtest']= orderupdate['Backtest'].astype('object')
+                             ~~~~~~~~~~~^^^^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+09-04-25 01:00:16 - INFO - function called searchscrip
+09-04-25 01:00:16 - ERROR - 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 307, in placeorder
+    orderupdate['Backtest']= orderupdate['Backtest'].astype('object')
+                             ~~~~~~~~~~~^^^^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+09-04-25 01:01:22 - INFO - function called searchscrip
+09-04-25 01:01:22 - ERROR - 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 307, in placeorder
+    orderupdate['Backtest']= orderupdate['Backtest'].astype('object')
+                             ~~~~~~~~~~~^^^^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+09-04-25 01:05:24 - INFO - function called searchscrip
+09-04-25 01:05:24 - ERROR - 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 307, in placeorder
+    orderupdate['Backtest']= orderupdate['Backtest'].astype('object')
+                             ~~~~~~~~~~~^^^^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+09-04-25 01:06:03 - INFO - function called searchscrip
+09-04-25 01:07:35 - INFO - function called searchscrip
+09-04-25 01:08:40 - INFO - function called searchscrip
+09-04-25 01:09:09 - INFO - function called searchscrip
+09-04-25 01:10:34 - INFO - function called searchscrip
+09-04-25 01:11:16 - INFO - function called searchscrip
+09-04-25 01:12:17 - INFO - function called searchscrip
+09-04-25 01:13:08 - INFO - function called searchscrip
+09-04-25 01:13:08 - ERROR - 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 307, in placeorder
+    orderupdate['Backtest']= orderupdate['Backtest'].astype('object')
+                             ~~~~~~~~~~~^^^^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+09-04-25 01:15:04 - INFO - function called searchscrip
+09-04-25 01:25:27 - INFO - function called searchscrip
+09-04-25 01:25:27 - ERROR - 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 307, in placeorder
+    orderupdate['Backtest']= orderupdate['Backtest'].astype('object')
+                             ~~~~~~~~~~~^^^^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+09-04-25 01:31:45 - INFO - function called searchscrip
+09-04-25 01:32:24 - INFO - function called searchscrip
+09-04-25 01:32:24 - ERROR - 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 307, in placeorder
+    orderupdate['Backtest']= orderupdate['Backtest'].astype('object')
+                             ~~~~~~~~~~~^^^^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+09-04-25 01:44:21 - INFO - function called searchscrip
+09-04-25 01:44:21 - ERROR - 'dict' object has no attribute 'loc'
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 335, in placeorder
+    orderupdate.loc[lastindex,'Qty']=maxfinal
+    ^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'loc'
+09-04-25 01:44:21 - ERROR - 'dict' object has no attribute 'loc'
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 335, in placeorder
+    orderupdate.loc[lastindex,'Qty']=maxfinal
+    ^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'loc'
+09-04-25 01:44:21 - ERROR - 'dict' object has no attribute 'loc'
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 335, in placeorder
+    orderupdate.loc[lastindex,'Qty']=maxfinal
+    ^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'loc'
+09-04-25 01:44:21 - ERROR - 'dict' object has no attribute 'loc'
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 335, in placeorder
+    orderupdate.loc[lastindex,'Qty']=maxfinal
+    ^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'loc'
+09-04-25 01:44:21 - ERROR - 'dict' object has no attribute 'loc'
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 335, in placeorder
+    orderupdate.loc[lastindex,'Qty']=maxfinal
+    ^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'loc'
+09-04-25 01:46:31 - INFO - function called searchscrip
+09-04-25 01:48:56 - INFO - function called searchscrip
+09-04-25 01:50:12 - INFO - function called searchscrip
+09-04-25 01:52:14 - INFO - function called searchscrip
+09-04-25 01:55:03 - INFO - function called searchscrip
+09-04-25 01:58:35 - INFO - function called searchscrip
+09-04-25 01:59:54 - INFO - function called searchscrip
+09-04-25 02:01:50 - INFO - function called searchscrip
+09-04-25 02:02:33 - INFO - function called searchscrip
+09-04-25 02:02:46 - INFO - function called searchscrip

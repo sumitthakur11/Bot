@@ -1,8 +1,8 @@
 from __future__ import unicode_literals,absolute_import
+from .smartConnect import SmartConnect
 
-from SmartApi.smartConnect import SmartConnect
 # from SmartApi.webSocket import WebSocket
-from SmartApi.smartApiWebsocket import SmartWebSocket
+from .smartApiWebsocket import SmartWebSocket
 
 __all__ = ["SmartConnect","SmartWebSocket"]
 

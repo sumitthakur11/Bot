@@ -111,7 +111,7 @@ class upstoxclient(object) :
         self.authToken= None
         self.refreshToken= None
         self.feedToken = None
-        self.smartApi = SmartConnect(api_key)
+        # self.smartApi = SmartConnect(api_key)
         self.userid= user
         self.token = token   #"46PG2HG3ST4NDTRD4FUUNVDC6Q"
         self.decimals = 10**6
@@ -174,7 +174,7 @@ class HTTP(upstoxclient):
     def client_(self):
         self.client= self.get_angel_client()
         token=self.client['authToken'].split(' ')[1]
-        self.smartApi = SmartConnect(self.api,access_token=token)
+        # self.smartApi = SmartConnect(self.api,access_token=token)
         return self.smartApi
     
     
@@ -276,6 +276,8 @@ class HTTP(upstoxclient):
         price=orderparam['price']
         stoploss=orderparam['sl']
         orderid= None
+        orderupdate= orderobject()
+
         minqty= None
         if int(orderparam['Amount'])!=0 and  PAPER==False:
             wallet = self.wallet()
@@ -296,7 +298,7 @@ class HTTP(upstoxclient):
         maxfinal= None
         if PAPER:
             maxfinal= max(int(quantity),int(maxqty))
-            orderparam['quantity']=maxfinal         
+            orderupdate.at[-1,'Qty']=maxfinal         
 
         orderparams = {
         "variety": "NORMAL",
@@ -311,17 +313,18 @@ class HTTP(upstoxclient):
         "squareoff": "0",
         "stoploss": "0",
         "quantity": quantity}
-        
+
         if not PAPER:
             orderid = self.smartApi.placeOrder(orderparams)
-            orderparam['buyorderid']=orderid
-        orderparam['buyorderid']='PAPER'
-        orderparam['sellorderid']='PAPER'
+            orderupdate.at[1,'Buyorderid']=orderid
+        orderupdate[-1,'Buyorderid']='PAPER'
+        orderupdate[-1,'Sellorderid']='PAPER'
         
-        orderparam['user']=1
-        orderparam['status']=True
-        orderparam['avg_price']=orderparam['ltp']
-        orderparam['broker']='ANGEL'
+        # orderparam['user']=1
+        orderupdate[-1,'Status']=True
+        orderupdate[-1,'AveragePrice']=orderparam['ltp']
+        orderupdate[-1,'Broker']='ANGEL'
+
         if STOPLOSS:
             if not PAPER:
 
@@ -343,11 +346,13 @@ class HTTP(upstoxclient):
                 orderid = self.smartApi.placeOrder(orderparams1) 
             
             
-                orderparam['sellorderid']= orderid
+                orderparam[-1,'Sellorderid']= orderid
 
 
         
-        orderobject(data=orderparam)
+        # orderobject(data=orderparam)
+        orderobject(orderupdate)
+        
         
         return   orderid
     

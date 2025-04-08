@@ -1,0 +1,2 @@
+,Unnamed: 0,AccountNo,Entrytime,Broker,Side,Buyorderid,Symbol,Token,Status,Ltp,Qty,AveragePrice,Sellorderid,Sellprice,TargetHit,Slhit,Tslhit,Exittime,Target,Trail,Sl,Backtest,Transactiontype,Order_type,Tradingsymbol,Product_type
+0,,,2025-04-09 02:02:46.939017,ANGEL,,a1c9f2c4-14b8-11f0-b5be-b245f5bfd617,,26009,True,,75,22900,,,,,,,10,10,10,True,BUY,MKT,NIFTY50,MIS

@@ -380,3 +380,153 @@ ValueError: The truth value of a Series is ambiguous. Use a.empty, a.bool(), a.i
 06-04-25 01:47:19 - INFO - Sucessfully loaded settings
 06-04-25 01:48:30 - INFO - Sucessfully loaded settings
 06-04-25 01:57:51 - INFO - Sucessfully loaded settings
+06-04-25 19:07:18 - INFO - Sucessfully loaded settings
+06-04-25 19:07:58 - INFO - Sucessfully loaded settings
+06-04-25 19:10:31 - INFO - Sucessfully loaded settings
+06-04-25 19:12:27 - INFO - Sucessfully loaded settings
+06-04-25 19:12:45 - INFO - Sucessfully loaded settings
+08-04-25 01:11:55 - INFO - Sucessfully loaded settings
+08-04-25 01:11:55 - ERROR - 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 42, in bollingerband
+    data['basis']= data['close'].rolling(period).mean()
+                   ~~~~^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+08-04-25 01:11:55 - ERROR - 'NoneType' object does not support item assignment
+08-04-25 01:11:55 - ERROR - 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 116, in conditons
+    data=  self.trend(data,trendperiod)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 84, in trend
+    data= self.ema(data,period)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 74, in ema
+    data['ema']=pd.Series(data['close']).ewm(alpha=alpha, adjust=False).mean()
+                          ~~~~^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+08-04-25 01:14:20 - INFO - Sucessfully loaded settings
+08-04-25 01:14:20 - ERROR - 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 42, in bollingerband
+    data['basis']= data['close'].rolling(period).mean()
+                   ~~~~^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+08-04-25 01:14:20 - ERROR - 'NoneType' object does not support item assignment
+08-04-25 01:14:20 - ERROR - 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 116, in conditons
+    data=  self.trend(data,trendperiod)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 84, in trend
+    data= self.ema(data,period)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 74, in ema
+    data['ema']=pd.Series(data['close']).ewm(alpha=alpha, adjust=False).mean()
+                          ~~~~^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+08-04-25 01:27:01 - INFO - Sucessfully loaded settings
+08-04-25 01:27:01 - ERROR - 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 42, in bollingerband
+    data['basis']= data['close'].rolling(period).mean()
+                   ~~~~^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+08-04-25 01:27:01 - ERROR - 'NoneType' object does not support item assignment
+08-04-25 01:27:01 - ERROR - 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 116, in conditons
+    data=  self.trend(data,trendperiod)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 84, in trend
+    data= self.ema(data,period)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 74, in ema
+    data['ema']=pd.Series(data['close']).ewm(alpha=alpha, adjust=False).mean()
+                          ~~~~^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+08-04-25 01:46:11 - INFO - Sucessfully loaded settings
+08-04-25 01:46:11 - ERROR - 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 42, in bollingerband
+    data['basis']= data['Close'].rolling(period).mean()
+                   ~~~~^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+08-04-25 01:46:11 - ERROR - 'NoneType' object does not support item assignment
+08-04-25 01:46:11 - ERROR - 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 116, in conditons
+    data=  self.trend(data,trendperiod)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 84, in trend
+    data= self.ema(data,period)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 74, in ema
+    data['ema']=pd.Series(data['Close']).ewm(alpha=alpha, adjust=False).mean()
+                          ~~~~^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+08-04-25 01:49:19 - INFO - Sucessfully loaded settings
+08-04-25 01:49:19 - ERROR - 'close'
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\indexes\base.py", line 3805, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas\\_libs\\hashtable_class_helper.pxi", line 7081, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas\\_libs\\hashtable_class_helper.pxi", line 7089, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'close'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 42, in bollingerband
+    data['basis']= data['close'].rolling(period).mean()
+                   ~~~~^^^^^^^^^
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\frame.py", line 4102, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    raise KeyError(key) from err
+KeyError: 'close'
+08-04-25 01:49:19 - ERROR - 'NoneType' object does not support item assignment
+08-04-25 01:49:19 - ERROR - 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 116, in conditons
+    data=  self.trend(data,trendperiod)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 84, in trend
+    data= self.ema(data,period)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 74, in ema
+    data['ema']=pd.Series(data['close']).ewm(alpha=alpha, adjust=False).mean()
+                          ~~~~^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+08-04-25 01:50:43 - INFO - Sucessfully loaded settings
+08-04-25 01:52:00 - INFO - Sucessfully loaded settings
+08-04-25 01:59:55 - INFO - Sucessfully loaded settings
+08-04-25 01:59:55 - ERROR - 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 42, in bollingerband
+    data['basis']= data['close'].rolling(period).mean()
+                   ~~~~^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+08-04-25 01:59:55 - ERROR - 'NoneType' object does not support item assignment
+08-04-25 01:59:55 - ERROR - 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 116, in conditons
+    data=  self.trend(data,trendperiod)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 84, in trend
+    data= self.ema(data,period)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 74, in ema
+    data['ema']=pd.Series(data['close']).ewm(alpha=alpha, adjust=False).mean()
+                          ~~~~^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+08-04-25 02:00:22 - INFO - Sucessfully loaded settings
+08-04-25 02:00:22 - ERROR - 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 42, in bollingerband
+    data['basis']= data['close'].rolling(period).mean()
+                   ~~~~^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+08-04-25 02:00:22 - ERROR - 'NoneType' object does not support item assignment
+08-04-25 02:00:22 - ERROR - 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 116, in conditons
+    data=  self.trend(data,trendperiod)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 84, in trend
+    data= self.ema(data,period)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 74, in ema
+    data['ema']=pd.Series(data['close']).ewm(alpha=alpha, adjust=False).mean()
+                          ~~~~^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+08-04-25 02:02:25 - INFO - Sucessfully loaded settings

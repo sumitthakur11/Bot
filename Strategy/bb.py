@@ -19,23 +19,9 @@ logger=env.setup_logger(logpath)
 
 class strategy:
     def __init__(self):
-        self.settings= self.loadsettings()
         self.utilityobj= utility.misc()
+        self.settings= self.utilityobj.loadsettings()
     
-    def  loadsettings(self):
-        try:
-
-            filepath= os.path.join(path,'config/config.json')
-            filepath= os.path.normpath(filepath)
-
-            with open(filepath,'rb') as file:
-
-                settings= json.load(file)
-            logger.info('Sucessfully loaded settings')
-            return settings['strategy']
-            
-        except Exception as e:
-            logger.error(e,exc_info=True)
     def bollingerband(self,data,period,stdperiod,mult):
         try:
 
@@ -131,6 +117,7 @@ class strategy:
                 data.loc[i,'buy_final']= True 
             elif  data['sellconditions'].iloc[i] and data['sellconditonTrend'].iloc[i] and data['buy_sell_condition_vol'].iloc[i]:
                 data.loc[i,'sell_final']= True
+        data.to_csv('finalcond.csv')
 
         return data
 
@@ -142,11 +129,11 @@ class strategy:
         print(data)
         data.to_csv('Finaltestdata.csv')
         
-        if data['buy_final'].iloc[-1] and not data['buy_final'].iloc[-2]:
-            self.utilityobj.processorder()
+        # if data['buy_final'].iloc[-1] and not data['buy_final'].iloc[-2]:
+        #     self.utilityobj.processorder()
             
-        elif data['sell_final'].iloc[-1] and not data['buy_final'].iloc[-2]:
-            self.utilityobj.processorder()
+        # elif data['sell_final'].iloc[-1] and not data['buy_final'].iloc[-2]:
+        #     self.utilityobj.processorder()
             
 
 

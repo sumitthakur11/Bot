@@ -40,3 +40,148 @@
 06-04-25 01:48:30 - INFO - test starts
 06-04-25 01:57:51 - INFO - test starts
 06-04-25 01:57:51 - INFO - test end
+06-04-25 19:07:18 - INFO - test starts
+06-04-25 19:07:19 - INFO - test end
+06-04-25 19:07:58 - INFO - test starts
+06-04-25 19:07:58 - INFO - test end
+06-04-25 19:10:31 - INFO - test starts
+06-04-25 19:10:31 - INFO - test end
+06-04-25 19:12:27 - INFO - test starts
+06-04-25 19:12:27 - ERROR - [Errno 13] Permission denied: 'finalcond.csv'
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\test.py", line 49, in tesbb
+    datar= obj.main(data)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 142, in main
+    data= self.finalconditons(data)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 134, in finalconditons
+    data.to_csv('finalcond.csv')
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\util\_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\generic.py", line 3967, in to_csv
+    return DataFrameRenderer(formatter).to_csv(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        path_or_buf,
+        ^^^^^^^^^^^^
+    ...<14 lines>...
+        storage_options=storage_options,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\io\formats\format.py", line 1014, in to_csv
+    csv_formatter.save()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\io\formats\csvs.py", line 251, in save
+    with get_handle(
+         ~~~~~~~~~~^
+        self.filepath_or_buffer,
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        storage_options=self.storage_options,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ) as handles:
+    ^
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\io\common.py", line 873, in get_handle
+    handle = open(
+        handle,
+    ...<3 lines>...
+        newline="",
+    )
+PermissionError: [Errno 13] Permission denied: 'finalcond.csv'
+06-04-25 19:12:45 - INFO - test starts
+06-04-25 19:12:45 - INFO - test end
+07-04-25 14:41:07 - INFO - test starts
+07-04-25 14:41:51 - INFO - test starts
+07-04-25 14:42:22 - INFO - test starts
+07-04-25 14:46:49 - INFO - test starts
+07-04-25 14:54:22 - INFO - test starts
+07-04-25 14:58:08 - INFO - test starts
+07-04-25 15:00:12 - INFO - test starts
+07-04-25 15:01:07 - INFO - test starts
+07-04-25 15:01:44 - INFO - test starts
+07-04-25 15:02:53 - INFO - test starts
+07-04-25 15:05:00 - INFO - test starts
+07-04-25 15:06:31 - INFO - test starts
+07-04-25 15:14:18 - INFO - test starts
+07-04-25 15:15:49 - INFO - test starts
+07-04-25 15:17:27 - INFO - test starts
+07-04-25 15:19:42 - INFO - test starts
+07-04-25 15:25:39 - INFO - test starts
+07-04-25 15:27:15 - INFO - test starts
+07-04-25 15:32:12 - INFO - test starts
+07-04-25 15:32:40 - INFO - test starts
+08-04-25 00:54:43 - INFO - test starts
+08-04-25 00:55:42 - INFO - test starts
+08-04-25 01:01:34 - INFO - test starts
+08-04-25 01:11:55 - ERROR - 'NoneType' object does not support item assignment
+Traceback (most recent call last):
+  File "c:\Users\sumit\BotKapil\BotKapil\Strategy\test.py", line 52, in tesbb
+    datar= obj.main(data)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 142, in main
+    data= self.finalconditons(data)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 127, in finalconditons
+    data['buy_final']= False
+    ~~~~^^^^^^^^^^^^^
+TypeError: 'NoneType' object does not support item assignment
+08-04-25 01:14:20 - ERROR - 'NoneType' object does not support item assignment
+Traceback (most recent call last):
+  File "c:\Users\sumit\BotKapil\BotKapil\Strategy\test.py", line 52, in tesbb
+    datar= obj.main(data)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 142, in main
+    data= self.finalconditons(data)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 127, in finalconditons
+    data['buy_final']= False
+    ~~~~^^^^^^^^^^^^^
+TypeError: 'NoneType' object does not support item assignment
+08-04-25 01:27:01 - ERROR - 'NoneType' object does not support item assignment
+Traceback (most recent call last):
+  File "c:\Users\sumit\BotKapil\BotKapil\Strategy\test.py", line 52, in tesbb
+    datar= obj.main(data)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 142, in main
+    data= self.finalconditons(data)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 127, in finalconditons
+    data['buy_final']= False
+    ~~~~^^^^^^^^^^^^^
+TypeError: 'NoneType' object does not support item assignment
+08-04-25 01:46:11 - ERROR - 'NoneType' object does not support item assignment
+Traceback (most recent call last):
+  File "c:\Users\sumit\BotKapil\BotKapil\Strategy\test.py", line 52, in tesbb
+    datar= obj.main(data)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 142, in main
+    data= self.finalconditons(data)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 127, in finalconditons
+    data['buy_final']= False
+    ~~~~^^^^^^^^^^^^^
+TypeError: 'NoneType' object does not support item assignment
+08-04-25 01:49:19 - ERROR - 'NoneType' object does not support item assignment
+Traceback (most recent call last):
+  File "c:\Users\sumit\BotKapil\BotKapil\Strategy\test.py", line 52, in tesbb
+    datar= obj.main(data)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 142, in main
+    data= self.finalconditons(data)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 127, in finalconditons
+    data['buy_final']= False
+    ~~~~^^^^^^^^^^^^^
+TypeError: 'NoneType' object does not support item assignment
+08-04-25 01:52:40 - INFO - test end
+08-04-25 01:59:55 - ERROR - 'NoneType' object does not support item assignment
+Traceback (most recent call last):
+  File "c:\Users\sumit\BotKapil\BotKapil\Strategy\test.py", line 52, in tesbb
+    datar= obj.main(data)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 142, in main
+    data= self.finalconditons(data)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 127, in finalconditons
+    data['buy_final']= False
+    ~~~~^^^^^^^^^^^^^
+TypeError: 'NoneType' object does not support item assignment
+08-04-25 02:00:22 - ERROR - 'NoneType' object does not support item assignment
+Traceback (most recent call last):
+  File "c:\Users\sumit\BotKapil\BotKapil\Strategy\test.py", line 52, in tesbb
+    datar= obj.main(data)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 142, in main
+    data= self.finalconditons(data)
+  File "C:\Users\sumit\BotKapil\BotKapil\Strategy\bb.py", line 127, in finalconditons
+    data['buy_final']= False
+    ~~~~^^^^^^^^^^^^^
+TypeError: 'NoneType' object does not support item assignment
+08-04-25 02:02:25 - INFO - test end
