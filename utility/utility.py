@@ -27,7 +27,7 @@ logger=env.setup_logger(logpath)
 class misc:
     def __init__(self):
 
-        self.orderdata = pd.DataFrame(columns=['AccountNo','Entrytime','Broker','Side','Buyorderid','Symbol','Token','Status','Ltp','Qty','AveragePrice','Sellorderid','Sellprice','TargetHit','Slhit','Tslhit','Exittime','Target','Trail','Sl','Backtest','Transactiontype','Order_type'],dtype='object')
+        self.orderdata = pd.DataFrame(columns=['AccountNo','Entrytime','Broker','Side','Buyorderid','Symbol','Token','Status','Ltp','Qty','AveragePrice','Sellorderid','Sellprice','TargetHit','Slhit','Tslhit','Exittime','Target','Trail','Sl','Backtest','Transactiontype','Order_type','Exchange','Pnl'],dtype='object')
         self.account = pd.DataFrame(columns=['AccountNo','Apikey','Secret','Password','Token'],dtype='object')
         
         self.orderobject()
@@ -132,12 +132,20 @@ class misc:
                                 orderobj.loc[i,'Status']=False
                                 orderobj.loc[i,'Exittime']=datetime.datetime.now()
                                 orderobj.loc[i,'Sellorderid']=orderid
+                                orderobj.loc[i,'Sellprice']=orderobj['Ltp'].iloc[i]
+                                orderobj.loc[i,'Pnl']=float(orderobj['AveragePrice'].iloc[i]-orderobj['Ltp'].iloc[i])*orderobj['Qty'].iloc[i]
+
+                                
                     
                     elif (orderobj['Slhit'].iloc[i] or orderobj['TargetHit'].iloc[i] or orderobj['Tslhit'].iloc[i]) and  orderobj['Backtest'].iloc[i]  :
                             logger.info('Check order close')
                             orderobj.loc[i,'Status']=False
                             orderobj.loc[i,'Exittime']=datetime.datetime.now()
                             orderobj.loc[i,'Sellorderid']=self.uniqueno()
+                            orderobj.loc[i,'Sellprice']=orderobj['Ltp'].iloc[i]
+                            orderobj.loc[i,'Pnl']=float(orderobj['AveragePrice'].iloc[i]-orderobj['Ltp'].iloc[i])*orderobj['Qty'].iloc[i]
+
+
 
 
                             
@@ -232,52 +240,57 @@ class misc:
         dffinal['updated_at'] = dffinal['updated_at'].dt.tz_localize('Asia/Kolkata')
             
         return dffinal
-    def checkpnlbox(self,account):
-        settings= self.loadsettings()
-        orderobj=self.orderobject()
-        orderobj= orderobj[orderobj['Status']==True]
+    def checkpnlbox(self):
+        try:
+             
+            settings= self.loadsettings()
+            orderobj=self.orderobject()
+            orderobj= orderobj[orderobj['Status']==True]
+            orderobj['Slhit']= orderobj['Slhit'].astype('object')      
+            orderobj['TargetHit']= orderobj['TargetHit'].astype('object')      
+            orderobj['Tslhit']= orderobj['Tslhit'].astype('object')      
 
-
-        if not orderobj.empty:
-            for i in range(len(orderobj)):
-                ltp= self.checkltp(orderobj['Exchange'].iloc[i],
-                                   orderobj['Token'].iloc[i])
-                orderobj['Exchange'].iloc[i]= ltp
-
-
-                if orderobj['AccountNo'].iloc[i]==account:
+            if not orderobj.empty:
+                for i in range(len(orderobj)):
+                    ltp= self.checkltp(orderobj['Exchange'].iloc[i],
+                                    orderobj['Token'].iloc[i])
+                    ltp= float(ltp)
+                    orderobj.loc[i,'Ltp']= ltp
+                    
                     if (ltp<orderobj['AveragePrice'].iloc[i]*(1-settings['sl_pct'])) and (orderobj['Side'].iloc[i]=='LONG'):
-                         orderobj.loc[i,'Slhit']=True
+                            orderobj.loc[i,'Slhit']=True
 
 
                     
                     elif (ltp>orderobj['AveragePrice'].iloc[i]*(1+settings['sl_pct'])) and (orderobj['Side'].iloc[i]=='SHORT'):
-                         orderobj.loc[i,'Slhit']=True
+                            orderobj.loc[i,'Slhit']=True
                     
                     if (ltp>orderobj['AveragePrice'].iloc[i]*(1+settings['tp_pct'])) and (orderobj['Side'].iloc[i]=='LONG'):
-                         orderobj.loc[i,'TargetHit']=True
+                            orderobj.loc[i,'TargetHit']=True
                     
                     elif (ltp<orderobj['AveragePrice'].iloc[i]*(1-settings['tp_pct'])) and (orderobj['Side'].iloc[i]=='SHORT'):
-                         orderobj.loc[i,'TargetHit']=True
+                            orderobj.loc[i,'TargetHit']=True
 
                     
                     if (ltp<orderobj['AveragePrice'].iloc[i]*(1-settings['trail_stop_pct'])) and (orderobj['Side'].iloc[i]=='LONG'):
-                         orderobj.loc[i,'Slhit']=True
+                            orderobj.loc[i,'Slhit']=True
 
                     
                     elif (ltp>orderobj['AveragePrice'].iloc[i]*(1+settings['trail_stop_pct'])) and (orderobj['Side'].iloc[i]=='SHORT'):
-                         orderobj.loc[i,'Slhit']=True
+                            orderobj.loc[i,'Slhit']=True
 
                 
                     if (ltp<orderobj['AveragePrice'].iloc[i]*(1+settings['trail_offset_pct'])) and (orderobj['Side'].iloc[i]=='LONG'):
-                         orderobj.loc[i,'Tslhit']=True
+                            orderobj.loc[i,'Tslhit']=True
 
                     
                     elif (ltp>orderobj['AveragePrice'].iloc[i]*(1-settings['trail_offset_pct'])) and (orderobj['Side'].iloc[i]=='SHORT'):
-                         orderobj.loc[i,'Tslhit']=True
-                         
+                            orderobj.loc[i,'Tslhit']=True
+                            
 
-        self.orderobject(newdata=orderobj)
+            self.orderobject(newdata=orderobj)
+        except Exception as e :
+             logger.error(e,exc_info=True)
 
 
 
@@ -299,19 +312,24 @@ class misc:
          
     
     def checkltp(self,exh,token):
+        try:
+             
          
 
-        broker = Angel.HTTP(1)
-        tokenparam= {exh:[]}
-        tokenparam[exh].append(token)
+            broker = Angel.HTTP(1)
+            tokenparam= {exh:[]}
+            tokenparam[exh].append((str(token)))
 
-        ltp= broker.get_quotes(tokenparam)
-        ltp= float(ltp['data']['fetched'][0]['ltp'])
-        print(ltp,'ltpange;')
-            
+            ltp= broker.get_quotes(tokenparam)
+            ltp= float(ltp['data']['fetched'][0]['ltp'])
+            print(ltp,'ltpange;')
+            return ltp
+
+        except Exception as e:
+             logger.error(e,exc_info=True)
+                
 
        
-        return ltp
 
          
 

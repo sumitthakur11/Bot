@@ -1984,3 +1984,105 @@ BotKapil.Broker.SmartApi.smartExceptions.DataException: Couldn't parse the JSON 
 09-04-25 01:46:31 - ERROR - check the orderobject function No columns to parse from file
 09-04-25 01:48:56 - ERROR - check the orderobject function No columns to parse from file
 09-04-25 01:52:15 - ERROR - check the orderobject function No columns to parse from file
+09-04-25 11:23:02 - INFO - Sucessfully loaded settings
+09-04-25 11:23:02 - ERROR - 'Exchange'
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\indexes\base.py", line 3805, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas\\_libs\\hashtable_class_helper.pxi", line 7081, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas\\_libs\\hashtable_class_helper.pxi", line 7089, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Exchange'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\utility\utility.py", line 245, in checkpnlbox
+    ltp= self.checkltp(orderobj['Exchange'].iloc[i],
+                       ~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\frame.py", line 4102, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\sumit\BotKapil\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Exchange'
+09-04-25 11:29:11 - INFO - Sucessfully loaded settings
+09-04-25 11:29:11 - ERROR - Object of type int64 is not JSON serializable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\utility\utility.py", line 311, in checkltp
+    ltp= broker.get_quotes(tokenparam)
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 244, in get_quotes
+    data =self.smartApi.getMarketData(mode,exchangeTokens)
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\SmartApi\smartConnect.py", line 481, in getMarketData
+    marketDataResult=self._postRequest("api.market.data",params)
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\SmartApi\smartConnect.py", line 263, in _postRequest
+    return self._request(route, "POST", params)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\SmartApi\smartConnect.py", line 222, in _request
+    raise e
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\SmartApi\smartConnect.py", line 212, in _request
+    data=json.dumps(params) if method in ["POST", "PUT"] else None,
+         ~~~~~~~~~~^^^^^^^^
+  File "C:\Users\sumit\AppData\Local\Programs\Python\Python313\Lib\json\__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\sumit\AppData\Local\Programs\Python\Python313\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "C:\Users\sumit\AppData\Local\Programs\Python\Python313\Lib\json\encoder.py", line 261, in iterencode
+    return _iterencode(o, 0)
+  File "C:\Users\sumit\AppData\Local\Programs\Python\Python313\Lib\json\encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+                    f'is not JSON serializable')
+TypeError: Object of type int64 is not JSON serializable
+09-04-25 11:29:11 - ERROR - '>' not supported between instances of 'float' and 'NoneType'
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\utility\utility.py", line 248, in checkpnlbox
+    if (ltp<orderobj['AveragePrice'].iloc[i]*(1-settings['sl_pct'])) and (orderobj['Side'].iloc[i]=='LONG'):
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'float' and 'NoneType'
+09-04-25 11:30:16 - INFO - Sucessfully loaded settings
+09-04-25 11:30:16 - ERROR - Object of type int64 is not JSON serializable
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\utility\utility.py", line 311, in checkltp
+    ltp= broker.get_quotes(tokenparam)
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\Angelsdk.py", line 244, in get_quotes
+    data =self.smartApi.getMarketData(mode,exchangeTokens)
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\SmartApi\smartConnect.py", line 481, in getMarketData
+    marketDataResult=self._postRequest("api.market.data",params)
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\SmartApi\smartConnect.py", line 263, in _postRequest
+    return self._request(route, "POST", params)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\SmartApi\smartConnect.py", line 222, in _request
+    raise e
+  File "C:\Users\sumit\BotKapil\BotKapil\Broker\SmartApi\smartConnect.py", line 212, in _request
+    data=json.dumps(params) if method in ["POST", "PUT"] else None,
+         ~~~~~~~~~~^^^^^^^^
+  File "C:\Users\sumit\AppData\Local\Programs\Python\Python313\Lib\json\__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\sumit\AppData\Local\Programs\Python\Python313\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "C:\Users\sumit\AppData\Local\Programs\Python\Python313\Lib\json\encoder.py", line 261, in iterencode
+    return _iterencode(o, 0)
+  File "C:\Users\sumit\AppData\Local\Programs\Python\Python313\Lib\json\encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+                    f'is not JSON serializable')
+TypeError: Object of type int64 is not JSON serializable
+09-04-25 11:30:16 - ERROR - '>' not supported between instances of 'float' and 'NoneType'
+Traceback (most recent call last):
+  File "C:\Users\sumit\BotKapil\BotKapil\utility\utility.py", line 248, in checkpnlbox
+    if (ltp<orderobj['AveragePrice'].iloc[i]*(1-settings['sl_pct'])) and (orderobj['Side'].iloc[i]=='LONG'):
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'float' and 'NoneType'
+09-04-25 11:32:15 - INFO - Sucessfully loaded settings
+09-04-25 11:34:13 - INFO - Sucessfully loaded settings
+09-04-25 11:37:37 - INFO - Sucessfully loaded settings
+09-04-25 11:41:59 - INFO - Sucessfully loaded settings
+09-04-25 11:45:23 - INFO - Sucessfully loaded settings
+09-04-25 11:47:01 - INFO - Check order close
+09-04-25 11:47:01 - ERROR - check the orderobject function [Errno 13] Permission denied: 'C:\\Users\\sumit\\BotKapil\\BotKapil\\data/liveorderdata/orderdata.csv'
+09-04-25 11:47:31 - INFO - Check order close
+09-04-25 11:50:47 - INFO - Check order close
+09-04-25 11:54:01 - INFO - Check order close
+09-04-25 11:55:21 - INFO - Check order close

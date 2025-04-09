@@ -59,7 +59,7 @@ def testorder():
     obj= utility.misc()
     orderparam= dict()
 
-    orderparam['symboltoken']=26009
+    orderparam['symboltoken']=26000
     orderparam['exchange']='NSE'
     orderparam['transactiontype']='BUY'
     orderparam['product_type']='MIS'
@@ -73,6 +73,9 @@ def testorder():
     orderparam['quantity']=75
     orderparam['ltp']=22900
     orderparam['tradingsymbol']='NIFTY50'
+    orderparam['Side']='Long'
+
+
     order= obj.processorder(orderparam)
     time.wait(0.5)
     
@@ -84,25 +87,18 @@ def testclosorder():
     data = utilis.closeorder()
     print(data)
 
+def testpnl():
+    utilis.checkpnlbox()
 
-# data=testmerge()
-# data= utilis.buildcandels(data,'5min')
-
-# tesbb(data)
-# testorder()
 times= time.time()
-# for _ in range(5):
-#     # tesbb()
-#     testorder()
 
-# print('normal',time.time()-times)
 from concurrent.futures import ThreadPoolExecutor
 times= time.time()
 
 threadobj=ThreadPoolExecutor(max_workers=5)
 
 # for _ in range(5):
-threadobj.submit(testorder)
+threadobj.submit(testclosorder)
 
 print('threading',time.time()-times)
 

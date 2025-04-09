@@ -240,6 +240,7 @@ class HTTP(SMARTAPI):
         # segment: [str(exchangeTokens)]
         # }
         print(exchangeTokens)
+        
         # client= self.client_()
         data =self.smartApi.getMarketData(mode,exchangeTokens)
         
@@ -267,7 +268,7 @@ class HTTP(SMARTAPI):
                 orderparams1 = {
                         "variety": "NORMAL",
                         "tradingsymbol": orderparam['Symbol'],
-                        "symboltoken":orderparam['Token'],
+                        "symboltoken":str(orderparam['Token']),
                         "transactiontype": orderparam['Transactiontype'],
                         "exchange": orderparam['exchange'],
                         "ordertype": orderparam['ordertype'],
@@ -293,19 +294,15 @@ class HTTP(SMARTAPI):
             
             print(PAPER,'paper')
             print(orderparam)
-            security_id=orderparam['symboltoken']
-            exchange_segment=orderparam['exchange']
-            transaction_type=orderparam['transactiontype']
-            product_type=orderparam['product_type']
             quantity=orderparam['quantity']
-            order_type=orderparam['order_type']
-            price=orderparam['price']
-            stoploss=orderparam['sl']
+
             orderid= None
             orderupdate= orderobject() 
               
             orderupdate['Backtest']= orderupdate['Backtest'].astype('object')      
             orderupdate['Order_type']= orderupdate['Order_type'].astype('object')      
+            orderupdate['Side']= orderupdate['Side'].astype('object')      
+
 
 
             
@@ -338,7 +335,7 @@ class HTTP(SMARTAPI):
             orderparams = {
             "variety": "NORMAL",
             "tradingsymbol": orderparam['tradingsymbol'],
-            "symboltoken":orderparam['symboltoken'],
+            "symboltoken":str(orderparam['symboltoken']),
             "transactiontype": orderparam['transactiontype'],
             "exchange": orderparam['exchange'],
             "ordertype": orderparam['order_type'],
@@ -373,6 +370,11 @@ class HTTP(SMARTAPI):
             orderupdate.loc[lastindex,'Target']=orderparam['target']
             orderupdate.loc[lastindex,'Trail']=orderparam['trail']
             orderupdate.loc[lastindex,'Entrytime']=datetime.datetime.now()
+            orderupdate.loc[lastindex,'Exchange']=orderparam['exchange']
+            orderupdate.loc[lastindex,'Side']='LONG' if orderparam['transactiontype']=='BUY' else 'SHORT'
+
+            
+
 
         
 
