@@ -4,7 +4,7 @@ from utility import utility
 import logging
 import os 
 import sys
-from BotKapil import env
+from Bot import env
 
 path= env.currenenv
 path= os.path.join(path,'BotKapil')
