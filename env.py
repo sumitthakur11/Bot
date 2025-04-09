@@ -1,6 +1,18 @@
 import os 
+print(os.environ)
+try :
 
-currenenv= os.path.abspath("C:/Users/sumit/BotKapil")
+    abspaths=os.environ['VIRTUAL_ENV']
+    currenenv= os.path.abspath(abspaths)
+
+
+except Exception as e:
+    print('Looks virtual enviroment is not activated. Kindly Activate Python Virtual environment or  Add enviroment path manually in config file under the field of env')
+    currenenv= os.path.abspath("C:/Users/sumit/BotKapil")
+
+print(currenenv)
+
+
 
 
 import logging

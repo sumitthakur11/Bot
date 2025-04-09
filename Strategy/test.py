@@ -102,5 +102,4 @@ threadobj.submit(testclosorder)
 
 print('threading',time.time()-times)
 
-
 # testclosorder()
