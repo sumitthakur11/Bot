@@ -1,3 +1,4 @@
+from Bot import env
 
 
 from .SmartApi import smartConnect
@@ -22,11 +23,8 @@ import os
 import pathlib as p
 from stat import *
 
-from Bot import env
 
 path= env.currenenv
-path= os.path.join(path,'Bot')
-path= str(path)
 logpath= os.path.join(path,'botlogs/Angelbroker.logs')
 logpath= os.path.normpath(logpath)
 # logpath= os.path.join(logpath,'Angelbroker.logs')
@@ -104,19 +102,29 @@ class order:
 class SMARTAPI(object) :
     
     def __init__(self, user,api_key ='9XSMVuAe', username = 'V40809',pwd = '5717',token="4GYRKXNFGXZU26IO3SJU5ZUCYM"):
-        self.api= api_key 
-        self.username=username
-        self.pwd = pwd
+        creddata= self.cred()
+        self.api= creddata['api_key'] 
+        self.username=creddata['username']
+        self.pwd = creddata['pwd']
         self.orderid = None
         self.authToken= None
         self.refreshToken= None
         self.feedToken = None
         self.smartApi = smartConnect.SmartConnect(api_key)
         self.userid= user
-        self.token = token   #"46PG2HG3ST4NDTRD4FUUNVDC6Q"
+        self.token = creddata['token']   
         self.decimals = 10**6
         self.occurred= 0
-
+        
+    def cred(self):
+        try:
+            with open(path+f"/config/config.json", 'rb') as f:
+                loaded_dict = json.load(f)
+                print(loaded_dict,'loadeddict')
+            return loaded_dict
+        except Exception as e :
+            print(e)
+    
         
     def smartAPI_Login(self):
         res= None

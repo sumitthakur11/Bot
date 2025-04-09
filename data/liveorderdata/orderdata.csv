@@ -1,2 +1,0 @@
-,Unnamed: 0.6,Unnamed: 0.5,Unnamed: 0.4,Unnamed: 0.3,Unnamed: 0.2,Unnamed: 0.1,Unnamed: 0,AccountNo,Entrytime,Broker,Side,Buyorderid,Symbol,Token,Status,Ltp,Qty,AveragePrice,Sellorderid,Sellprice,TargetHit,Slhit,Tslhit,Exittime,Target,Trail,Sl,Backtest,Transactiontype,Order_type,Exchange,Tradingsymbol,Product_type,Pnl
-0,0,0,0,0,0,0,,,41:18.0,ANGEL,LONG,732a2e4d-1509-11f0-b951-aa2715a83342,,26000,False,22430.7,75,22900,6a025688-150b-11f0-b97e-aa2715a83342,22430.7,,True,True,2025-04-09 11:55:21.584661,10,10,10,True,BUY,MKT,NSE,NIFTY50,MIS,35197.49999999994

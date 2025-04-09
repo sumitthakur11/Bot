@@ -1,5 +1,6 @@
 
 
+from Bot import env
 
 # from .SmartApi.smartConnect import SmartConnect
 # from .SmartApi.smartWebSocketV2 import SmartWebSocketV2
@@ -22,11 +23,8 @@ import math
 import pytz
 import os 
 import pathlib
-from Bot import env
 
 path= env.currenenv
-path= os.path.join(path,'Bot')
-path= str(path)
 logpath= os.path.join(path,'botlogs/upstox.logs')
 logpath= os.path.normpath(logpath)
 # logpath= os.path.join(logpath,'Angelbroker.logs')

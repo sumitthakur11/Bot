@@ -1,14 +1,12 @@
 
+from Bot import env
 from Strategy import bb as strategy
 from utility import utility
 import logging
 import os 
 import sys
-from Bot import env
 
 path= env.currenenv
-path= os.path.join(path,'BotKapil')
-path= str(path)
 logpath= os.path.join(path,'botlogs/Angelbroker.logs')
 logpath= os.path.normpath(logpath)
 # logpath= os.path.join(logpath,'Angelbroker.logs')

@@ -1,3 +1,4 @@
+from Bot import env
 from Bot.Broker import upstoxsdk as upstox
 from Bot.Broker import Angelsdk as Angel
 
@@ -7,15 +8,10 @@ import json
 import pandas as pd 
 import time as ts 
 import pytz
-from Bot import env
 import datetime
-
 
 # path= os.getcwd()
 path = env.currenenv
-path= env.currenenv
-path= os.path.join(path,'Bot')
-path= str(path)
 logpath= os.path.join(path,'botlogs/utility.logs')
 logpath= os.path.normpath(logpath)
 # logpath= os.path.join(logpath,'Angelbroker.logs')
@@ -223,15 +219,21 @@ class misc:
             logger.error(e,exc_info=True)
             
     def mergebacktest(self):
-        datapath= "data/ZohoWorkDrive/10-2024/10-2024/NIFTY_I.csv"
+        datapath= "Bot/data/ZohoWorkDrive/10-2024/10-2024/NIFTY_I.csv"
         datapath= os.path.join(path,datapath)
+        datapath= os.path.normpath(datapath)
+
         df1= pd.read_csv(datapath)
-        datapath= "data/ZohoWorkDrive/11-2024/11-2024/NIFTY_I.csv"
+        datapath= "Bot/data/ZohoWorkDrive/11-2024/11-2024/NIFTY_I.csv"
         datapath= os.path.join(path,datapath)
+        datapath= os.path.normpath(datapath)
+
         df2= pd.read_csv(datapath)
 
-        datapath= "data/ZohoWorkDrive/01-2025/01-2025/NIFTY_I.csv"
+        datapath= "Bot/data/ZohoWorkDrive/01-2025/01-2025/NIFTY_I.csv"
         datapath= os.path.join(path,datapath)
+        datapath= os.path.normpath(datapath)
+
         df3= pd.read_csv(datapath)
         
         dffinal = pd.concat([df1, df2, df3], ignore_index=True)

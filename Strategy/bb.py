@@ -1,3 +1,4 @@
+from Bot import env
 import pandas as pd 
 import time 
 from datetime import datetime,timedelta
@@ -5,12 +6,9 @@ import os
 import logging
 import json
 from Bot.utility import utility
-from Bot import env
 
 path= env.currenenv
 
-path= os.path.join(path,'Bot')
-print(path)
 logpath= os.path.join(path,'botlogs/strategy1.logs')
 logpath= os.path.normpath(logpath)
 print(logpath,'logpath')

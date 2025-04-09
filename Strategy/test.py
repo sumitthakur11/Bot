@@ -1,3 +1,4 @@
+from Bot import env
 import time 
 import os 
 import logging
@@ -6,11 +7,8 @@ from concurrent.futures import ThreadPoolExecutor
 from Bot.utility import utility
 from Bot.Strategy import bb
 from Bot.Broker import Angelsdk as angel
-from Bot import env
 
 path = env.currenenv
-path= os.path.join(path,'Bot')
-print(path)
 
 logpath= os.path.join(path,'botlogs/test.logs')
 logpath= os.path.normpath(logpath)
@@ -18,17 +16,6 @@ print(logpath,'logpath')
 logger=env.setup_logger(logpath)
 
 utilis= utility.misc()
-# raw= utilis.gettestdata('nifty')
-
-# print(raw.head())
-# data= utilis.buildcandels(raw,'5min')
-# print(data.head())
-# logger.info('test starts')
-
-# obj = angel.HTTP(1)
-# candel= obj.candels('NSE','26000','FIVE_MINUTE')
-
-
 
 def test():
     try:
