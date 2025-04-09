@@ -4,12 +4,12 @@ from datetime import datetime,timedelta
 import os
 import logging
 import json
-from BotKapil.utility import utility
-from BotKapil import env
+from Bot.utility import utility
+from Bot import env
 
 path= env.currenenv
 
-path= os.path.join(path,'BotKapil')
+path= os.path.join(path,'Bot')
 print(path)
 logpath= os.path.join(path,'botlogs/strategy1.logs')
 logpath= os.path.normpath(logpath)

@@ -8,7 +8,7 @@ try :
 
 except Exception as e:
     print('Looks virtual enviroment is not activated. Kindly Activate Python Virtual environment or  Add enviroment path manually in config file under the field of env')
-    currenenv= os.path.abspath("C:/Users/sumit/BotKapil")
+    currenenv= os.path.abspath("C:/Users/sumit/Bot")
 
 print(currenenv)
 

@@ -3,13 +3,13 @@ import os
 import logging
 import threading
 from concurrent.futures import ThreadPoolExecutor
-from BotKapil.utility import utility
-from BotKapil.Strategy import bb
-from BotKapil.Broker import Angelsdk as angel
-from BotKapil import env
+from Bot.utility import utility
+from Bot.Strategy import bb
+from Bot.Broker import Angelsdk as angel
+from Bot import env
 
 path = env.currenenv
-path= os.path.join(path,'BotKapil')
+path= os.path.join(path,'Bot')
 print(path)
 
 logpath= os.path.join(path,'botlogs/test.logs')

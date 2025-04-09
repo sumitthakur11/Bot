@@ -1,5 +1,5 @@
-from BotKapil.Broker import upstoxsdk as upstox
-from BotKapil.Broker import Angelsdk as Angel
+from Bot.Broker import upstoxsdk as upstox
+from Bot.Broker import Angelsdk as Angel
 
 import os
 import logging
@@ -7,14 +7,14 @@ import json
 import pandas as pd 
 import time as ts 
 import pytz
-from BotKapil import env
+from Bot import env
 import datetime
 
 
 # path= os.getcwd()
 path = env.currenenv
 path= env.currenenv
-path= os.path.join(path,'BotKapil')
+path= os.path.join(path,'Bot')
 path= str(path)
 logpath= os.path.join(path,'botlogs/utility.logs')
 logpath= os.path.normpath(logpath)

@@ -22,10 +22,10 @@ import math
 import pytz
 import os 
 import pathlib
-from BotKapil import env
+from Bot import env
 
 path= env.currenenv
-path= os.path.join(path,'BotKapil')
+path= os.path.join(path,'Bot')
 path= str(path)
 logpath= os.path.join(path,'botlogs/upstox.logs')
 logpath= os.path.normpath(logpath)
