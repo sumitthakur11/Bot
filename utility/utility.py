@@ -36,7 +36,10 @@ class misc:
     def getsymbols(self):
         
         try:
-            with open(path+f"config/symbols.json", 'rb') as f:
+            symbolpath= os.path.join(path,"config/symbol.json")
+            symbolpath= os.path.normpath(symbolpath)
+
+            with open(symbolpath) as f:
                 loaded_dict = json.load(f)
             return loaded_dict
         except Exception as e :
@@ -45,6 +48,7 @@ class misc:
     
     def  loadsettings(self):
         try:
+            
 
             filepath= os.path.join(path,'config/config.json')
             filepath= os.path.normpath(filepath)
@@ -59,11 +63,22 @@ class misc:
             logger.error(e,exc_info=True)
 
     
-    def getdata(self,symbol):
+    def getdata(self,symbol,test):
         try:
+            if not test:
+                 filepath= os.path.join(path,f"data/feeddata/{symbol}.csv")
+            else:
+                 filepath= os.path.join(path,f"data/testdata/{symbol}.csv")
+                 
+                 
 
-            df= pd.read_json(path+f"data/feeddata/{symbol}.json")
-            df= df[-2000:]
+            filepath= os.path.normpath(filepath)
+
+
+            df= pd.read_csv(filepath)
+            df.reset_index(drop=True,inplace=True)
+
+            
             
             return df 
         except Exception as e :
@@ -103,7 +118,7 @@ class misc:
             for i in range(len(orderobj)):
                     print(orderobj.iloc[i])
                     
-                    if (orderobj['Slhit'].iloc[i] or     orderobj['TargetHit'].iloc[i] or orderobj['Tslhit'].iloc[i]) and not orderobj['Backtest'].iloc[i]  :
+                    if (orderobj['Slhit'].iloc[i] or orderobj['TargetHit'].iloc[i] or orderobj['Tslhit'].iloc[i]) and not orderobj['Backtest'].iloc[i]  :
                         accountdetail = self.fetchaccounts(key=orderobj['AccountNo'])
 
                         if not accountdetail.empty:
@@ -157,29 +172,37 @@ class misc:
 
             orderid=  []
             placeorders=False
-            if backtest :
+            orderobj=self.orderobject()
+            
+            orderobj=orderobj[orderobj['Backtest']==True]
+        
+            if backtest  and not  orderobj['Status'].any():
+
                 broker= Angel.HTTP(1)
                 print('yes')
                 order_ids=broker.placeorder(orderparams,self.orderobject,True)
-                
-                
+
 
                 
             else :
                 brokerlist= self.fetchaccounts()
-                for i in range(len(brokerlist)):
-                    apikey= brokerlist['apikey'].iloc[i]
-                    username= brokerlist['apikey'].iloc[i]
-                    pws= brokerlist['apikey'].iloc[i]
-                    token= brokerlist['apikey'].iloc[i]
 
-                    broker= Angel.HTTP(1,apikey,username,pws,token)
-                    placeorders= True # left to  add more conditons 
-                    if placeorders:
-                        order_ids=broker.placeorder(orderparams,self.orderobject,False)
-                        
-                        orderid.append(order_ids)
-                        placeorders=False
+
+                for i in range(len(brokerlist)):
+                    orderobj=orderobj[orderobj['Accountno']==brokerlist['AccountNo'].iloc[i]]
+                    if not orderobj['Status'].any():
+                        apikey= brokerlist['Apikey'].iloc[i]
+                        username= brokerlist['AccountNo'].iloc[i]
+                        pws= brokerlist['Password'].iloc[i]
+                        token= brokerlist['Token'].iloc[i]
+
+                        broker= Angel.HTTP(1,apikey,username,pws,token)
+                        placeorders= True # left to  add more conditons 
+                        if placeorders:
+                            order_ids=broker.placeorder(orderparams,self.orderobject,False)
+                            
+                            orderid.append(order_ids)
+                            placeorders=False
 
                 return orderid
         except Exception as e:
@@ -240,9 +263,12 @@ class misc:
         dffinal['updated_at']= pd.to_datetime(dffinal['Date'],format='%Y%m%d')
         dffinal['updated_at']=dffinal['updated_at']+pd.to_timedelta(dffinal['Time'])
         dffinal['updated_at'] = dffinal['updated_at'].dt.tz_localize('Asia/Kolkata')
-            
-        return dffinal
-    def checkpnlbox(self):
+        csvpath = os.path.join(path,'data/testdata/NIFTY50.csv')
+        csvpath=os.path.normpath(csvpath)
+        dffinal.to_csv(csvpath)
+
+        return dffinal 
+    def checkpnlbox(self,LTP):
         try:
              
             settings= self.loadsettings()
@@ -254,10 +280,12 @@ class misc:
 
             if not orderobj.empty:
                 for i in range(len(orderobj)):
+                    
                     ltp= self.checkltp(orderobj['Exchange'].iloc[i],
-                                    orderobj['Token'].iloc[i])
+                                    orderobj['Token'].iloc[i],orderobj['Backtest'].iloc[i],LTP)
                     ltp= float(ltp)
                     orderobj.loc[i,'Ltp']= ltp
+
                     
                     if (ltp<orderobj['AveragePrice'].iloc[i]*(1-settings['sl_pct'])) and (orderobj['Side'].iloc[i]=='LONG'):
                             orderobj.loc[i,'Slhit']=True
@@ -313,7 +341,7 @@ class misc:
          
          
     
-    def checkltp(self,exh,token):
+    def checkltp(self,exh,token,bakctest,LTP):
         try:
              
          
@@ -321,9 +349,12 @@ class misc:
             broker = Angel.HTTP(1)
             tokenparam= {exh:[]}
             tokenparam[exh].append((str(token)))
-
-            ltp= broker.get_quotes(tokenparam)
-            ltp= float(ltp['data']['fetched'][0]['ltp'])
+            if not bakctest:
+                ltp= broker.get_quotes(tokenparam)
+                ltp= float(ltp['data']['fetched'][0]['ltp'])
+            else:
+                 ltp=LTP
+                 
             print(ltp,'ltpange;')
             return ltp
 
@@ -363,18 +394,24 @@ class misc:
 
         
 
-    def buildcandels(self,data,timeframe_seconds=None):
+    def buildcandels(self,data,timeframe_seconds=None,backtest=False):
         try:    
                 
-                
-                # data['updated_at'] = pd.to_datetime(str(data['Date'])+str(data['Time']))
-                # data['updated_at'] = data['updated_at'].dt.tz_localize('Asia/Kolkata')
+                data['updated_at']= pd.to_datetime(data['updated_at'])
+
+                if not backtest:
+                     
+                    df = data.set_index('updated_at')
+                else :
+                    pass
                 df = data.set_index('updated_at')
+                     
+                # print(df)
                 open_price = df['Close'].resample(timeframe_seconds).first()
                 high_price = df['Close'].resample(timeframe_seconds).max()
                 low_price = df['Close'].resample(timeframe_seconds).min()
                 close_price = df['Close'].resample(timeframe_seconds).last()
-                volume= df['Close'].resample(timeframe_seconds).last()
+                volume= df['Volume'].resample(timeframe_seconds).last()
                 OI= df['OI'].resample(timeframe_seconds).last()
 
                 self.ohlc = pd.DataFrame({
@@ -390,6 +427,7 @@ class misc:
                 self.ohlc = self.ohlc.reset_index()
                 return self.ohlc
         except Exception as e:
-                            logger.error(e,exc_info=True)
+            
+            logger.error(e,exc_info=True)
 
     

@@ -69,7 +69,12 @@ def testorder():
 def testmerge():
     data=utilis.mergebacktest()
     return data
-
+def testbuildcandle():
+    data= utilis.getdata('NIFTY50',True)
+    print(data.head())
+    candle= utilis.buildcandels(data,'5min')
+    print(candle.head())
+    return candle
 def testclosorder():
     data = utilis.closeorder()
     print(data)
@@ -82,10 +87,11 @@ times= time.time()
 from concurrent.futures import ThreadPoolExecutor
 times= time.time()
 
-threadobj=ThreadPoolExecutor(max_workers=5)
+testbuildcandle()
+# threadobj=ThreadPoolExecutor(max_workers=5)
 
 # for _ in range(5):
-threadobj.submit(testclosorder)
+# threadobj.submit(testmerge)
 
 print('threading',time.time()-times)
 

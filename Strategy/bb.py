@@ -115,24 +115,29 @@ class strategy:
                 data.loc[i,'buy_final']= True 
             elif  data['sellconditions'].iloc[i] and data['sellconditonTrend'].iloc[i] and data['buy_sell_condition_vol'].iloc[i]:
                 data.loc[i,'sell_final']= True
-        data.to_csv('finalcond.csv')
 
         return data
 
          
     
-    def main(self,data):
+    def main(self,data,backtest):
+        try:
 
-        data= self.finalconditons(data)
-        print(data)
-        data.to_csv('Finaltestdata.csv')
-        
-        # if data['buy_final'].iloc[-1] and not data['buy_final'].iloc[-2]:
-        #     self.utilityobj.processorder()
+            data= self.finalconditons(data)
+            print(data)
             
-        # elif data['sell_final'].iloc[-1] and not data['buy_final'].iloc[-2]:
-        #     self.utilityobj.processorder()
+            if data['buy_final'].iloc[-1] and not data['buy_final'].iloc[-2]:
+                self.utilityobj.processorder()
+                
+            elif data['sell_final'].iloc[-1] and not data['buy_final'].iloc[-2]:
+                self.utilityobj.processorder()
+            data.to_csv('Finaltestdata.csv')
             
+            return True
+        except Exception as e :
+            logger.error(e,exc_info=True)
+            return False
+
 
 
 
