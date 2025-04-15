@@ -17,6 +17,7 @@ logger=env.setup_logger(logpath)
 
 utilis= utility.misc()
 
+
 def test():
     try:
 
@@ -61,10 +62,17 @@ def testorder():
     orderparam['ltp']=22900
     orderparam['tradingsymbol']='NIFTY50'
     orderparam['Side']='Long'
+    orderparam['updated_atdiff']=10
+    orderparam['TargetHit']=False
+    orderparam['Tslhit']=False
+    orderparam['Slhit']=False
+
+
+
 
 
     order= obj.processorder(orderparam)
-    time.wait(0.5)
+    # time.wait(0.5)
     
 def testmerge():
     data=utilis.mergebacktest()
@@ -87,7 +95,8 @@ times= time.time()
 from concurrent.futures import ThreadPoolExecutor
 times= time.time()
 
-testbuildcandle()
+# testclosorder()
+testorder()
 # threadobj=ThreadPoolExecutor(max_workers=5)
 
 # for _ in range(5):

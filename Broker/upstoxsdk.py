@@ -101,7 +101,7 @@ class order:
 
 class upstoxclient(object) :
     
-    def __init__(self, user,api_key ='vMoFaxjs', username = 'I9500',pwd = '7536',token=''):
+    def __init__(self, user,api_key ='', username = '',pwd = '',token=''):
         self.api= api_key 
         self.username=username
         self.pwd = pwd
@@ -114,36 +114,21 @@ class upstoxclient(object) :
         self.token = token   #"46PG2HG3ST4NDTRD4FUUNVDC6Q"
         self.decimals = 10**6
         self.occurred= 0
-
-        # self.smartAPI_Login()
-    def smartAPI_Login(self):
-        res= None
-        self.occurred+=self.occurred
-        try:
-            totp = pyotp.TOTP(self.token).now()
-        except Exception as e:
-            logger.error(f"Invalid Token: The provided token is not valid or {e}") 
-            raise e
-        data = self.smartApi.generateSession(self.username, self.pwd, totp)
+        self.headers= {'Content-Type':'application/json','Accept':'application/json'}
         
-        if not data['status']:
-            logger.error(data)
-        else:
-            tokendict={}
-            tokendict['authToken'] = data['data']['jwtToken']
-            tokendict['refreshToken'] = data['data']['refreshToken']
-            print(tokendict['refreshToken'],'===================================================')
-            tokendict['feedToken'] = self.smartApi.getfeedToken()
-            self.smartApi.generateToken(tokendict['refreshToken'])
-            res = self.smartApi.getProfile(tokendict['refreshToken'])
-            res = res['data']['exchanges']
-            filepath= path+'/Broker/{self.username}.json'
-            out=open(filepath, 'a')
-            json.dump(tokendict,out,indent=6)
-            out.close()
+
+        # self.upstoxAPI_Login()
+    def upstoxAPI_Login(self,clientid,secret):
+        payload= {'client_id':clientid}
+        data= {'client_secret':secret}
+
+        url = "https://api.upstox.com/v3/login/auth/token/request/:client_id"
+
+        response = requests.request("POST", url, headers=self.headers,payload=payload, data=data)
+        return response.json()
 
             
-        return self.smartApi
+        
     def get_angel_client(self):
         try:
             with open(path+f"/Broker/{self.username}.json", 'rb') as f:
@@ -262,97 +247,115 @@ class HTTP(upstoxclient):
     
     
     
-    def placeorder(self, orderparam,orderobject,STOPLOSS,STOBJ,PAPER):
-        print(PAPER,'paper')
-        print(orderparam)
-        security_id=orderparam['symboltoken']
-        exchange_segment=orderparam['exchange']
-        transaction_type=orderparam['transactiontype']
-        product_type=orderparam['product_type']
-        quantity=orderparam['quantity']
-        order_type=orderparam['order_type']
-        price=orderparam['price']
-        stoploss=orderparam['sl']
-        orderid= None
-        orderupdate= orderobject()
+    def placeorder(self, orderparam,orderobject,PAPER):
+        try:
+            url= 'https://api-hft.upstox.com/v3'
+            access_token= None
+            self.headers['Authorization']= f'Bearer {access_token}'
 
-        minqty= None
-        if int(orderparam['Amount'])!=0 and  PAPER==False:
-            wallet = self.wallet()
-            minvalue= min(float(wallet['net']),orderparam['Amount'])
-            if orderparam['instrument']=='EQ':
-                minqty=int(math.floor(minvalue/float(orderparam['ltp'])))
-            else:
-                
-                
-                minqty=int((minvalue/int(orderparam['ltp']))/int(orderparam['lotsize']))*int(orderparam['lotsize'])
-                print(minqty)
-                minqty=int(min(minqty,int(orderparam['lotsize'])))
-        maxvalue=float(orderparam['Amount']) 
-        maxqty=int(math.floor(maxvalue/float(orderparam['ltp'])))
+            quantity=orderparam['quantity']
 
-        quantity=orderparam['quantity'] if minqty is None else minqty
-        quantity=orderparam['quantity']  if quantity== 0  else quantity
-        maxfinal= None
-        if PAPER:
-            maxfinal= max(int(quantity),int(maxqty))
-            orderupdate.at[-1,'Qty']=maxfinal         
+            orderid= None
+            orderupdate= orderobject() 
+              
+            orderupdate['Backtest']= orderupdate['Backtest'].astype('object')      
+            orderupdate['Order_type']= orderupdate['Order_type'].astype('object')      
+            orderupdate['Side']= orderupdate['Side'].astype('object')   
+            orderupdate['Entrytime']= orderupdate['Entrytime'].astype('object') 
+            orderupdate['Exittime']= orderupdate['Exittime'].astype('object')      
 
-        orderparams = {
-        "variety": "NORMAL",
-        "tradingsymbol": orderparam['tradingsymbol'],
-        "symboltoken":orderparam['symboltoken'],
-        "transactiontype": orderparam['transactiontype'],
-        "exchange": orderparam['exchange'],
-        "ordertype": orderparam['order_type'],
-        "producttype": orderparam['product_type'],
-        "duration": "DAY",
-        "price": orderparam['price'],
-        "squareoff": "0",
-        "stoploss": "0",
-        "quantity": quantity}
 
-        if not PAPER:
-            orderid = self.smartApi.placeOrder(orderparams)
-            orderupdate.at[1,'Buyorderid']=orderid
-        orderupdate[-1,'Buyorderid']='PAPER'
-        orderupdate[-1,'Sellorderid']='PAPER'
-        
-        # orderparam['user']=1
-        orderupdate[-1,'Status']=True
-        orderupdate[-1,'AveragePrice']=orderparam['ltp']
-        orderupdate[-1,'Broker']='ANGEL'
 
-        if STOPLOSS:
+
+
+            
+
+            minqty= None
+            if int(orderparam['Amount'])!=0 and  PAPER==False:
+                wallet = self.wallet()
+                minvalue= min(float(wallet['net']),orderparam['Amount'])
+                if orderparam['instrument']=='EQ':
+                    minqty=int(math.floor(minvalue/float(orderparam['ltp'])))
+                else:
+                    
+                    
+                    minqty=int((minvalue/int(orderparam['ltp']))/int(orderparam['lotsize']))*int(orderparam['lotsize'])
+                    print(minqty)
+                    minqty=int(min(minqty,int(orderparam['lotsize'])))
+            maxvalue=float(orderparam['Amount']) 
+            maxqty=int(math.floor(maxvalue/float(orderparam['ltp'])))
+
+            quantity=orderparam['quantity'] if minqty is None else minqty
+            quantity=orderparam['quantity']  if quantity== 0  else quantity
+            maxfinal= None
+            lastindex= len(orderupdate)
+            print(lastindex) 
+            if PAPER:
+                maxfinal= max(int(quantity),int(maxqty))
+                orderupdate.loc[lastindex,'Qty']=maxfinal         
+
+
+           
             if not PAPER:
+                payload = json.dumps({
+                                "quantity": quantity,
+                                "product": "D",
+                                "validity": "DAY",
+                                "price": orderparam['price'],
+                                "tag": "string",
+                                "instrument_token": f"{orderparam['exchange']}|{orderparam['symboltoken']}",
+                                "order_type": orderparam['order_type'],
+                                "transaction_type": orderparam['transactiontype'],
+                                "disclosed_quantity": quantity,
+                                "trigger_price": orderparam['price'],
+                                "is_amo": False,
+                                "slice": False
+                                })
+                orderid = requests.request("POST", url, headers=self.headers, data=payload)
+                orderid= orderid.json()
+                orderid= orderid['data']['order_ids']
+                orderupdate.loc[lastindex,'Buyorderid']=orderid[0]
+                orderupdate.loc[lastindex,'Backtest']=False
 
-                orderparams1 = {
-                        "variety": "NORMAL",
-                        "tradingsymbol": orderparam['tradingsymbol'],
-                        "symboltoken":orderparam['symboltoken'],
-                        "transactiontype": orderparam['transactiontype'],
-                        "exchange": orderparam['exchange'],
-                        "ordertype": orderparam['SL'],
-                        "producttype": orderparam['product_type'],
-                        "duration": "DAY",
-                        "price": orderparam['price'],
-                        'triggerprice':orderparam['price'],
-                        "squareoff": "0",
-                        "stoploss": "0",
-                        "quantity": orderparam['quantity']}
 
-                orderid = self.smartApi.placeOrder(orderparams1) 
+            else:
+
+                orderupdate.loc[lastindex,'Buyorderid']=self.uniqueno()
+                orderupdate.loc[lastindex,'Backtest']=True
+
+                
+            # orderparam['user']=1
+            orderupdate.loc[lastindex,'Status']=True
+            orderupdate.loc[lastindex,'AveragePrice']=orderparam['ltp']
+            orderupdate.loc[lastindex,'Broker']='ANGEL'
+            orderupdate.loc[lastindex,'Tradingsymbol']=orderparam['tradingsymbol']
+            orderupdate.loc[lastindex,'Token']=orderparam['symboltoken']
+            orderupdate.loc[lastindex,'Order_type']=orderparam['order_type']
+            orderupdate.loc[lastindex,'Transactiontype']=orderparam['transactiontype']
+            orderupdate.loc[lastindex,'Product_type']=orderparam['product_type']
+            orderupdate.loc[lastindex,'Sl']=orderparam['sl']
+            orderupdate.loc[lastindex,'Target']=orderparam['target']
+            orderupdate.loc[lastindex,'Trail']=orderparam['trail']
+            orderupdate.loc[lastindex,'Entrytime']=datetime.datetime.now()
+            orderupdate.loc[lastindex,'Exchange']=orderparam['exchange']
+            orderupdate.loc[lastindex,'Side']='LONG' if orderparam['transactiontype']=='BUY' else 'SHORT'
+
+            
+
+
+        
+
+
+
+
+            
+            orderobject(newdata=orderupdate)
             
             
-                orderparam[-1,'Sellorderid']= orderid
-
-
-        
-        # orderobject(data=orderparam)
-        orderobject(orderupdate)
-        
-        
-        return   orderid
+            return   orderid
+        except Exception as e:
+            logger.error(e,exc_info=True)
+    
     
     
     def gainersLosers(self,typedata):

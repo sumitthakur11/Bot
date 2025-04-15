@@ -9,6 +9,7 @@ import pandas as pd
 import time as ts 
 import pytz
 import datetime
+import numpy as np
 
 # path= os.getcwd()
 path = env.currenenv
@@ -22,11 +23,15 @@ print(logpath,'logpath')
 logger=env.setup_logger(logpath)
 class misc:
     def __init__(self):
+        orderdata= [['',datetime.datetime.now(),'','','','','',False,0.0,0,0.0,'',0.0,False,False,False,datetime.datetime.now(),0.0,0.0,0.0,False,'','','',0.0]]
 
-        self.orderdata = pd.DataFrame(columns=['AccountNo','Entrytime','Broker','Side','Buyorderid','Symbol','Token','Status','Ltp','Qty','AveragePrice','Sellorderid','Sellprice','TargetHit','Slhit','Tslhit','Exittime','Target','Trail','Sl','Backtest','Transactiontype','Order_type','Exchange','Pnl'],dtype='object')
+        self.orderdata = pd.DataFrame(orderdata,columns=['AccountNo','Entrytime','Broker','Side','Buyorderid','Symbol','Token','Status','Ltp','Qty','AveragePrice','Sellorderid','Sellprice','TargetHit','Slhit','Tslhit','Exittime','Target','Trail','Sl','Backtest','Transactiontype','Order_type','Exchange','Pnl'],dtype='object')
         self.account = pd.DataFrame(columns=['AccountNo','Apikey','Secret','Password','Token'],dtype='object')
+       
         
-        self.orderobject()
+
+
+        data=self.orderobject()
         self.fetchaccounts()
 
         
@@ -85,28 +90,35 @@ class misc:
             logger.error(e,exc_info=True)
 
 
-    def orderobject(self,accountno='',newdata:pd.DataFrame=pd.DataFrame()):
+    def orderobject(self,newdata='',newdataflag=False):
         try:
             file=None
-            orderpath= "data/liveorderdata/orderdata.csv"
+            print(newdata,newdataflag,'new data')
+
+            orderpath= "data/liveorderdata/orderdata.json"
             orderpath= os.path.join(path,orderpath)
             if not os.path.exists(orderpath):
-                self.orderdata.to_csv(orderpath)
-            if not newdata.empty:
+
+                self.orderdata.to_json(orderpath)
+                'here'
+            if newdataflag:
                  
-                 newdata.to_csv(orderpath)
-                
+                 if 'level_0' in newdata.columns:
+                      newdata = newdata.drop(columns=['level_0'])
+                 newdata=newdata.reset_index()
                  print('HERE')
+                 print(newdata,'??????????????????????????????')
+                 newdata.to_json(orderpath,default_handler=str)
+                
             else:
-                file = pd.read_csv(orderpath)
+                file = pd.read_json(orderpath)
 
             return file
             
         except Exception as e:
-            logger.error(f"check the orderobject function {e}")
+            logger.error(f"check the orderobject function {e}",exc_info=True)
     def uniqueno(self):
-        import uuid
-        return uuid.uuid1()
+        return int(ts.time()*1000)
 
     def closeorder(self):
         try :
@@ -114,54 +126,62 @@ class misc:
              
             orderobj=self.orderobject()
             orderobj=pd.DataFrame(orderobj,dtype='object')
-            orderobj= orderobj[orderobj['Status']==True]
-            for i in range(len(orderobj)):
-                    print(orderobj.iloc[i])
-                    
-                    if (orderobj['Slhit'].iloc[i] or orderobj['TargetHit'].iloc[i] or orderobj['Tslhit'].iloc[i]) and not orderobj['Backtest'].iloc[i]  :
-                        accountdetail = self.fetchaccounts(key=orderobj['AccountNo'])
+            orderobjTrue=orderobj[orderobj['Status']==True]
 
-                        if not accountdetail.empty:
-                            apikey= accountdetail['Apikey'].iloc[-1]
-                            username= accountdetail['AccountNo'].iloc[-1]
-                            pws= accountdetail['Password'].iloc[-1]
-                            token= accountdetail['Token'].iloc[-1]
-                            brokeri = Angel.HTTP(1,apikey,username,pws,token) 
-                            orderparam= dict()
+            # orderobj= orderobj[orderobj['Status']==True]
+            if not orderobj.empty:
+                for i in range(len(orderobjTrue)):
+                        print(orderobjTrue.iloc[i])
+                        if orderobjTrue['Status'].iloc[i]:
+                            ind= orderobjTrue.index[i]
+
+                             
+                            if (orderobjTrue['Slhit'].iloc[i] or orderobjTrue['TargetHit'].iloc[i] or orderobjTrue['Tslhit'].iloc[i]) and not orderobjTrue['Backtest'].iloc[i]  :
+                                accountdetail = self.fetchaccounts(key=orderobj['AccountNo'])
+
+                                if not accountdetail.empty:
+                                    apikey= accountdetail['Apikey'].iloc[-1]
+                                    username= accountdetail['AccountNo'].iloc[-1]
+                                    pws= accountdetail['Password'].iloc[-1]
+                                    token= accountdetail['Token'].iloc[-1]
+                                    brokeri = Angel.HTTP(1,apikey,username,pws,token) 
+                                    orderparam= dict()
+                                    
+                                    orderparam['Token']=26009
+                                    orderparam['exchange']='NSE'
+                                    orderparam['Transactiontype']='BUY'
+                                    orderparam['product_type']='MIS'
+                                    orderparam['ordertype']='MIS'
+                                    orderparam['price']=orderobj['Ltp'].iloc[i]
+                                    orderparam['quantity']=orderobj['Qty'].iloc[i]
+                                    orderparam['Symbol']=orderobj['Symbol'].iloc[i]
+
+                                    orderid=brokeri.closetrade(orderparam,orderobj['Backtest'].iloc[i])
+                                    if orderid:
+                                        orderobj.loc[ind,'Status']=False
+                                        orderobj.loc[ind,'Exittime']=datetime.datetime.now()
+                                        orderobj.loc[ind,'Sellorderid']=orderid
+                                        orderobj.loc[ind,'Sellprice']=orderobjTrue['Ltp'].iloc[i]
+                                        orderobj.loc[ind,'Pnl']=float(orderobjTrue['AveragePrice'].iloc[i]-orderobjTrue['Ltp'].iloc[i])*orderobjTrue['Qty'].iloc[i]
+                                        self.orderobject(newdata=orderobj,newdataflag=True)
+
+                                        
                             
-                            orderparam['Token']=26009
-                            orderparam['exchange']='NSE'
-                            orderparam['Transactiontype']='BUY'
-                            orderparam['product_type']='MIS'
-                            orderparam['ordertype']='MIS'
-                            orderparam['price']=orderobj['Ltp'].iloc[i]
-                            orderparam['quantity']=orderobj['Qty'].iloc[i]
-                            orderparam['Symbol']=orderobj['Symbol'].iloc[i]
-
-                            orderid=brokeri.closetrade(orderparam,orderobj['Backtest'].iloc[i])
-                            if orderid:
-                                orderobj.loc[i,'Status']=False
-                                orderobj.loc[i,'Exittime']=datetime.datetime.now()
-                                orderobj.loc[i,'Sellorderid']=orderid
-                                orderobj.loc[i,'Sellprice']=orderobj['Ltp'].iloc[i]
-                                orderobj.loc[i,'Pnl']=float(orderobj['AveragePrice'].iloc[i]-orderobj['Ltp'].iloc[i])*orderobj['Qty'].iloc[i]
-
-                                
-                    
-                    elif (orderobj['Slhit'].iloc[i] or orderobj['TargetHit'].iloc[i] or orderobj['Tslhit'].iloc[i]) and  orderobj['Backtest'].iloc[i]  :
-                            logger.info('Check order close')
-                            orderobj.loc[i,'Status']=False
-                            orderobj.loc[i,'Exittime']=datetime.datetime.now()
-                            orderobj.loc[i,'Sellorderid']=self.uniqueno()
-                            orderobj.loc[i,'Sellprice']=orderobj['Ltp'].iloc[i]
-                            orderobj.loc[i,'Pnl']=float(orderobj['AveragePrice'].iloc[i]-orderobj['Ltp'].iloc[i])*orderobj['Qty'].iloc[i]
+                            elif (orderobjTrue['Slhit'].iloc[i] or orderobjTrue['TargetHit'].iloc[i] or orderobjTrue['Tslhit'].iloc[i]) and  orderobjTrue['Backtest'].iloc[i]  :
+                                    logger.info('Check order close')
+                                    print('buffer',orderobjTrue['Slhit'].iloc[i],orderobjTrue['TargetHit'].iloc[i],orderobjTrue['Tslhit'].iloc[i])
+                                    orderobj.loc[ind,'Status']=False
+                                    orderobj.loc[ind,'Exittime']=datetime.datetime.now()
+                                    orderobj.loc[ind,'Sellorderid']=self.uniqueno()
+                                    orderobj.loc[ind,'Sellprice']=orderobjTrue['Ltp'].iloc[i]
+                                    orderobj.loc[ind,'Pnl']=float(orderobjTrue['Ltp'].iloc[i]-orderobjTrue['AveragePrice'].iloc[i])*orderobjTrue['Qty'].iloc[i]
+                                    self.orderobject(newdata=orderobj,newdataflag=True)
 
 
 
 
                             
                                 
-            self.orderobject(newdata=orderobj)
         except Exception as e:
              logger.error(e,exc_info=True)
                      
@@ -172,37 +192,45 @@ class misc:
 
             orderid=  []
             placeorders=False
-            orderobj=self.orderobject()
             
-            orderobj=orderobj[orderobj['Backtest']==True]
-        
-            if backtest  and not  orderobj['Status'].any():
+            orderobj=self.orderobject()
+            print(datetime.timedelta(minutes=orderparams['updated_atdiff']))
+            print(orderobj['Entrytime'].iloc[-1]/1000)
+            print(datetime.datetime.fromtimestamp(orderobj['Entrytime'].iloc[-1]/1000))
+            
+            print(datetime.datetime.fromtimestamp(orderobj['Entrytime'].iloc[-1]/1000)+ datetime.timedelta(minutes=orderparams['updated_atdiff']))
+            if datetime.datetime.now()> datetime.datetime.fromtimestamp(orderobj['Entrytime'].iloc[-1]/1000)+datetime.timedelta(minutes=orderparams['updated_atdiff']):
+                
+                
+                orderobj=orderobj[orderobj['Backtest']==True]
+                 
+                if backtest  and not  orderobj['Status'].any() :
 
-                broker= Angel.HTTP(1)
-                print('yes')
-                order_ids=broker.placeorder(orderparams,self.orderobject,True)
+                    broker= Angel.HTTP(1)
+                    print('yes')
+                    order_ids=broker.placeorder(orderparams,self.orderobject,True)
 
 
                 
-            else :
-                brokerlist= self.fetchaccounts()
+                else :
+                    brokerlist= self.fetchaccounts()
 
 
-                for i in range(len(brokerlist)):
-                    orderobj=orderobj[orderobj['Accountno']==brokerlist['AccountNo'].iloc[i]]
-                    if not orderobj['Status'].any():
-                        apikey= brokerlist['Apikey'].iloc[i]
-                        username= brokerlist['AccountNo'].iloc[i]
-                        pws= brokerlist['Password'].iloc[i]
-                        token= brokerlist['Token'].iloc[i]
+                    for i in range(len(brokerlist)):
+                        orderobj=orderobj[orderobj['Accountno']==brokerlist['AccountNo'].iloc[i]]
+                        if not orderobj['Status'].any():
+                            apikey= brokerlist['Apikey'].iloc[i]
+                            username= brokerlist['AccountNo'].iloc[i]
+                            pws= brokerlist['Password'].iloc[i]
+                            token= brokerlist['Token'].iloc[i]
 
-                        broker= Angel.HTTP(1,apikey,username,pws,token)
-                        placeorders= True # left to  add more conditons 
-                        if placeorders:
-                            order_ids=broker.placeorder(orderparams,self.orderobject,False)
-                            
-                            orderid.append(order_ids)
-                            placeorders=False
+                            broker= Angel.HTTP(1,apikey,username,pws,token)
+                            placeorders= True # left to  add more conditons 
+                            if placeorders:
+                                order_ids=broker.placeorder(orderparams,self.orderobject,False)
+                                
+                                orderid.append(order_ids)
+                                placeorders=False
 
                 return orderid
         except Exception as e:
@@ -273,52 +301,59 @@ class misc:
              
             settings= self.loadsettings()
             orderobj=self.orderobject()
-            orderobj= orderobj[orderobj['Status']==True]
+            orderobjTrue=orderobj[orderobj['Status']==True]
+
             orderobj['Slhit']= orderobj['Slhit'].astype('object')      
             orderobj['TargetHit']= orderobj['TargetHit'].astype('object')      
             orderobj['Tslhit']= orderobj['Tslhit'].astype('object')      
-
             if not orderobj.empty:
-                for i in range(len(orderobj)):
-                    
-                    ltp= self.checkltp(orderobj['Exchange'].iloc[i],
-                                    orderobj['Token'].iloc[i],orderobj['Backtest'].iloc[i],LTP)
-                    ltp= float(ltp)
-                    orderobj.loc[i,'Ltp']= ltp
+                for i in range(len(orderobjTrue)):
 
-                    
-                    if (ltp<orderobj['AveragePrice'].iloc[i]*(1-settings['sl_pct'])) and (orderobj['Side'].iloc[i]=='LONG'):
-                            orderobj.loc[i,'Slhit']=True
+                    if orderobjTrue['Status'].iloc[i]:
+                        ltp= self.checkltp(orderobjTrue['Exchange'].iloc[i],
+                                        orderobjTrue['Token'].iloc[i],orderobjTrue['Backtest'].iloc[i],LTP)
+                        ltp= float(ltp)
+                        ind= orderobjTrue.index[i]
+                        print(ind)
+
+                        orderobj.loc[ind,'Ltp']= ltp
+                        print(i,orderobj.loc[i,'Ltp'])
+                        print('check pnl$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$',ltp)
+                        
+                        if (ltp<orderobjTrue['AveragePrice'].iloc[i]*(1-settings['sl_pct'])) and (orderobjTrue['Side'].iloc[i]=='LONG'):
+                                orderobj.loc[ind,'Slhit']=True
 
 
-                    
-                    elif (ltp>orderobj['AveragePrice'].iloc[i]*(1+settings['sl_pct'])) and (orderobj['Side'].iloc[i]=='SHORT'):
-                            orderobj.loc[i,'Slhit']=True
-                    
-                    if (ltp>orderobj['AveragePrice'].iloc[i]*(1+settings['tp_pct'])) and (orderobj['Side'].iloc[i]=='LONG'):
-                            orderobj.loc[i,'TargetHit']=True
-                    
-                    elif (ltp<orderobj['AveragePrice'].iloc[i]*(1-settings['tp_pct'])) and (orderobj['Side'].iloc[i]=='SHORT'):
-                            orderobj.loc[i,'TargetHit']=True
-
-                    
-                    if (ltp<orderobj['AveragePrice'].iloc[i]*(1-settings['trail_stop_pct'])) and (orderobj['Side'].iloc[i]=='LONG'):
-                            orderobj.loc[i,'Slhit']=True
-
-                    
-                    elif (ltp>orderobj['AveragePrice'].iloc[i]*(1+settings['trail_stop_pct'])) and (orderobj['Side'].iloc[i]=='SHORT'):
-                            orderobj.loc[i,'Slhit']=True
+                        
+                        elif (ltp>orderobjTrue['AveragePrice'].iloc[i]*(1+settings['sl_pct'])) and (orderobjTrue['Side'].iloc[i]=='SHORT'):
+                                orderobj.loc[ind,'Slhit']=True
 
                 
-                    if (ltp<orderobj['AveragePrice'].iloc[i]*(1+settings['trail_offset_pct'])) and (orderobj['Side'].iloc[i]=='LONG'):
-                            orderobj.loc[i,'Tslhit']=True
+                        
+                        if (ltp>orderobjTrue['AveragePrice'].iloc[i]*(1+settings['tp_pct'])) and (orderobjTrue['Side'].iloc[i]=='LONG'):
+                                orderobj.loc[ind,'TargetHit']=True
+                        
+                        elif (ltp<orderobjTrue['AveragePrice'].iloc[i]*(1-settings['tp_pct'])) and (orderobjTrue['Side'].iloc[i]=='SHORT'):
+                                orderobj.loc[ind,'TargetHit']=True
+
+                        
+                        if (ltp<orderobjTrue['AveragePrice'].iloc[i]*(1-settings['trail_stop_pct'])) and (orderobjTrue['Side'].iloc[i]=='LONG'):
+                                orderobj.loc[ind,'Slhit']=True
+
+                        
+                        elif (ltp>orderobjTrue['AveragePrice'].iloc[i]*(1+settings['trail_stop_pct'])) and (orderobjTrue['Side'].iloc[i]=='SHORT'):
+                                orderobj.loc[ind,'Slhit']=True
 
                     
-                    elif (ltp>orderobj['AveragePrice'].iloc[i]*(1-settings['trail_offset_pct'])) and (orderobj['Side'].iloc[i]=='SHORT'):
-                            orderobj.loc[i,'Tslhit']=True
-                            
-
-            self.orderobject(newdata=orderobj)
+                        if (ltp<orderobjTrue['AveragePrice'].iloc[i]*(1+settings['trail_offset_pct'])) and (orderobjTrue['Side'].iloc[i]=='LONG'):
+                                orderobj.loc[ind,'Tslhit']=True
+                                print(orderobj,'$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+                                print(orderobj['AveragePrice'].iloc[i]*(1+settings['trail_offset_pct']))
+                        elif (ltp>orderobjTrue['AveragePrice'].iloc[i]*(1-settings['trail_offset_pct'])) and (orderobjTrue['Side'].iloc[i]=='SHORT'):
+                                orderobj.loc[ind,'Tslhit']=True
+                        self.orderobject(newdata=orderobj,newdataflag=True)
+                    else:
+                         pass
         except Exception as e :
              logger.error(e,exc_info=True)
 
@@ -407,6 +442,7 @@ class misc:
                 df = data.set_index('updated_at')
                      
                 # print(df)
+                # df.groupby('date')['Close'].resample(timeframe_seconds).first()
                 open_price = df['Close'].resample(timeframe_seconds).first()
                 high_price = df['Close'].resample(timeframe_seconds).max()
                 low_price = df['Close'].resample(timeframe_seconds).min()

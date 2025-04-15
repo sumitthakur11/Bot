@@ -6,6 +6,7 @@ import os
 import logging
 import json
 from Bot.utility import utility
+import pytz
 
 path= env.currenenv
 
@@ -28,6 +29,9 @@ class strategy:
             data['dev'] = mult*data['stddata']
             data['upper']=data['basis']+data['dev']
             data['lower']=data['basis']-data['dev']
+            data['buy_final']= False
+            data['sell_final']= False
+
 
             print(data,'check data ')
             return data
@@ -108,8 +112,6 @@ class strategy:
     
     def finalconditons(self,data):
         data = self.conditons(data)
-        data['buy_final']= False
-        data['sell_final']= False
         for i in range(len(data)):
             if data['buyconditions'].iloc[i] and data['buyconditonTrend'].iloc[i] and data['buy_sell_condition_vol'].iloc[i]:
                 data.loc[i,'buy_final']= True 
@@ -119,23 +121,66 @@ class strategy:
         return data
 
          
+    def ordersing(self,price,sl,target,trail,qty,side,amount):
+        orderparam=dict()
+        orderparam['symboltoken']=26000
+        orderparam['exchange']='NSE'
+        orderparam['transactiontype']='BUY'
+        orderparam['product_type']='MIS'
+        orderparam['quantity']=1
+        orderparam['order_type']='MKT'
+        orderparam['price']= price
+        orderparam['sl']=sl
+        orderparam['target']=target
+        orderparam['trail']=trail
+        orderparam['Amount']=amount
+        orderparam['quantity']=qty
+        orderparam['ltp']=price
+        orderparam['tradingsymbol']='NIFTY50'
+        orderparam['Side']=side
+        orderparam['Slhit']=False
+        orderparam['TargetHit']=False
+        orderparam['Tslhit']=False
+
+        return orderparam
+
     
     def main(self,data,backtest):
         try:
 
             data= self.finalconditons(data)
-            print(data)
+            sl=self.settings['sl_pct']
+            trail=self.settings['trail_offset_pct']
+            target=self.settings['tp_pct']
+            stoptrail=self.settings['trail_stop_pct']
+            price=data['close'].iloc[-1]
+            qty=75
+            if not backtest:
+
+                nowtime= datetime.now(tz=pytz.timezone('Asia/Kolkata')).minute>data['updated_at'].iloc[-1].minute
+
+            else:
+                nowtime= datetime.now(tz=pytz.timezone('Asia/Kolkata')).minute>data['updated_at'].iloc[-1].minute
+
+
+
             
-            if data['buy_final'].iloc[-1] and not data['buy_final'].iloc[-2]:
-                self.utilityobj.processorder()
-                
-            elif data['sell_final'].iloc[-1] and not data['buy_final'].iloc[-2]:
-                self.utilityobj.processorder()
+            if data['buy_final'].iloc[-1] and not data['buy_final'].iloc[-2]   :
+                orderparam=self.ordersing(price,sl,target,trail,qty,'BUY',0)
+                orderparam['updated_atdiff']=data['updated_at'].iloc[-1].minute-data['updated_at'].iloc[-2].minute
+                self.utilityobj.processorder(orderparam,backtest=backtest)
+            elif data['sell_final'].iloc[-1] and not data['buy_final'].iloc[-2]  :
+                orderparam=self.ordersing(price,sl,target,trail,qty,'SELL',0)
+                orderparam['updated_atdiff']=data['updated_at'].iloc[-1].minute-data['updated_at'].iloc[-2].minute
+
+                self.utilityobj.processorder(orderparam,backtest=backtest)
+
             data.to_csv('Finaltestdata.csv')
             
             return True
         except Exception as e :
             logger.error(e,exc_info=True)
+            print(e)
             return False
 
 

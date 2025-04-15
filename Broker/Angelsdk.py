@@ -1,6 +1,4 @@
 from Bot import env
-
-
 from .SmartApi import smartConnect
 from .SmartApi import smartWebSocketV2
 import pyotp
@@ -101,8 +99,9 @@ class order:
 
 class SMARTAPI(object) :
     
-    def __init__(self, user,api_key ='9XSMVuAe', username = 'V40809',pwd = '5717',token="4GYRKXNFGXZU26IO3SJU5ZUCYM"):
+    def __init__(self, user,api_key ='', username = '',pwd = '',token=""):
         creddata= self.cred()
+        creddata=creddata['Angelcred']
         self.api= creddata['api_key'] 
         self.username=creddata['username']
         self.pwd = creddata['pwd']
@@ -110,7 +109,7 @@ class SMARTAPI(object) :
         self.authToken= None
         self.refreshToken= None
         self.feedToken = None
-        self.smartApi = smartConnect.SmartConnect(api_key)
+        self.smartApi = smartConnect.SmartConnect(self.api)
         self.userid= user
         self.token = creddata['token']   
         self.decimals = 10**6
@@ -163,7 +162,10 @@ class SMARTAPI(object) :
         return self.smartApi
     def get_angel_client(self):
         try:
-            with open(path+f"/Broker/{self.username}.json", 'rb') as f:
+            filepath= os.path.join(path,f'Broker/{self.username}.json')
+            filepath= os.path.normpath(filepath)
+
+            with open(filepath, 'rb') as f:
                 loaded_dict = json.load(f)
                 print(loaded_dict,'loadeddict')
             return loaded_dict
@@ -175,7 +177,7 @@ class SMARTAPI(object) :
     
 
 class HTTP(SMARTAPI):
-    def __init__(self,user,api_key ='9XSMVuAe', username = 'V40809',pwd = '5717',token="4GYRKXNFGXZU26IO3SJU5ZUCYM"):
+    def __init__(self,user,api_key ='', username = '',pwd = '',token="4GYRKXNFGXZU26IO3SJU5ZUCYM"):
         super().__init__(self,api_key , username ,pwd,token)
         self.user=user
         self.smartApi=self.client_()
@@ -267,8 +269,8 @@ class HTTP(SMARTAPI):
 
     
     def uniqueno(self):
-        import uuid
-        return uuid.uuid1()
+        # import uuid
+        return int(time.time()*1000)
     def closetrade(self, orderparam,PAPER):
         
         if not PAPER:
@@ -309,14 +311,20 @@ class HTTP(SMARTAPI):
               
             orderupdate['Backtest']= orderupdate['Backtest'].astype('object')      
             orderupdate['Order_type']= orderupdate['Order_type'].astype('object')      
-            orderupdate['Side']= orderupdate['Side'].astype('object')      
+            orderupdate['Side']= orderupdate['Side'].astype('object')   
+            orderupdate['Entrytime']= orderupdate['Entrytime'].astype('object') 
+            orderupdate['Exittime']= orderupdate['Exittime'].astype('object')   
+            orderupdate['Status']= orderupdate['Status'].astype('object')      
+
+
+
 
 
 
             
 
             minqty= None
-            if int(orderparam['Amount'])!=0 and  PAPER==False:
+            if int(orderparam['Amount'])!=0 and not  PAPER:
                 wallet = self.wallet()
                 minvalue= min(float(wallet['net']),orderparam['Amount'])
                 if orderparam['instrument']=='EQ':
@@ -335,6 +343,7 @@ class HTTP(SMARTAPI):
             maxfinal= None
             lastindex= len(orderupdate)
             print(lastindex) 
+            lastindex=lastindex+1
             if PAPER:
                 maxfinal= max(int(quantity),int(maxqty))
                 orderupdate.loc[lastindex,'Qty']=maxfinal         
@@ -380,6 +389,9 @@ class HTTP(SMARTAPI):
             orderupdate.loc[lastindex,'Entrytime']=datetime.datetime.now()
             orderupdate.loc[lastindex,'Exchange']=orderparam['exchange']
             orderupdate.loc[lastindex,'Side']='LONG' if orderparam['transactiontype']=='BUY' else 'SHORT'
+            orderupdate.loc[lastindex,'TargetHit']=orderparam['TargetHit']
+            orderupdate.loc[lastindex,'Slhit']=orderparam['Slhit']     
+            orderupdate.loc[lastindex,'Tslhit']=orderparam['Tslhit']     
 
             
 
@@ -390,7 +402,7 @@ class HTTP(SMARTAPI):
 
 
             
-            orderobject(newdata=orderupdate)
+            orderobject(newdata=orderupdate,newdataflag=True)
             
             
             return   orderid
@@ -436,7 +448,7 @@ class HTTP(SMARTAPI):
         orderobject.save()
         return orderid
 class WebSocketConnect(SMARTAPI):
-   def __init__(self, user,api_key ='9XSMVuAe',  username = 'V40809',pwd = '5717',token="4GYRKXNFGXZU26IO3SJU5ZUCYM",update_depth=''):
+   def __init__(self, user,api_key ='',  username = '',pwd = '',token="4GYRKXNFGXZU26IO3SJU5ZUCYM",update_depth=''):
         super().__init__(user,api_key , username ,pwd)
         self.update_depth= update_depth
         

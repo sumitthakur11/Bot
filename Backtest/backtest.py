@@ -2,6 +2,7 @@
 from Bot import env
 from Bot.Strategy import bb as strategy
 from Bot.utility import utility
+from Bot.Broker import Angelsdk
 
 import logging
 import os 
@@ -23,7 +24,8 @@ def scheduelbacktest():
         print(symbollist)
         datalist= []
         stat=strategy.strategy()
-        
+        login= Angelsdk.SMARTAPI(1)
+        login.smartAPI_Login()
         for i in symbollist['symbol']:
             logger.info(f"backtest starts for symbol:{i}")
             data = misc.getdata(i,test=True)
@@ -36,6 +38,7 @@ def scheduelbacktest():
                 datalist.append(datadict)
                 datafin= pd.DataFrame(datalist)
                 datafin= misc.buildcandels(datafin,'5min',True)
+                print(datafin.iloc[-1])
                 print(float(data['Close'].iloc[j]))
                 flag=stat.main(datafin,True)
                 misc.checkpnlbox(float(data['Close'].iloc[j]))
