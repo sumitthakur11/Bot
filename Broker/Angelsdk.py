@@ -30,38 +30,7 @@ print(logpath,'logpath')
 logger=env.setup_logger(logpath)
 
 
-class balance:
-     def __init__(self, Balance):
-        self.Account= dict()
-        self.totalaccount= []
-        # print(Balance.keys())
-        self.Account['account'] = Balance['account']
-        self.Account['username'] = Balance['username']
-        self.Account['account_type'] = Balance['account_type']
-        self.Account['available_balance'] = Balance['available_balance']
-        self.Account['signing_keys'] = Balance['signing_keys'][-1]
-        self.totalaccount.append(self.Account)
-    
-        
-class Ltp:
-    def __init__(self,data) :
-        self.data= {}
-        self.finaldata= []
-        self.data['LTP'] =int(data['last_traded_price'])/100 
-        self.data['updated_at']= time.time()
-        self.data['exchange']= data['exchange_type']
-        self.data['token']= data['token']
-        self.data['volume']= 0
-        self.data['instrumentname']= ''
-        self.data['spikemark']=0
-        self.data['isexpiryday']= 0
-
-
-        finaldata.append(data)
-        db.storedb(self.data)
-        
-
-def searchscrip (Symbol,exchange='NFO',instrument=''):
+def searchscrip (Symbol='',exchange='NFO',instrument=''):
         try:
 
             data = requests.get('https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json')
@@ -69,21 +38,141 @@ def searchscrip (Symbol,exchange='NFO',instrument=''):
                 db = pd.DataFrame(data.json())
             else:
                 print(f"Failed to download the file. Status code: {data.status_code}")
-            if instrument !='EQ':
-                db =db[db['instrumenttype']==instrument] 
-                db = db[db['symbol'] ==  Symbol ]   
+            logpath= os.path.join(path,'data/NFO.csv')
+            logpath= os.path.normpath(logpath)
 
-            db = db[db['exch_seg'] == exchange]
-            db = db[db['symbol'] ==  Symbol ] 
+            db.to_csv(logpath)
+            if instrument =='TOKEN':
+
+                db =db[db['token']==Symbol] 
+
+            if instrument=='FUTIDXS':
+                db =db[db['instrumenttype']=='FUTIDX'] 
+
+
+            elif instrument !='EQ':
+                db =db[db['instrumenttype']==instrument] 
+                db = db[db['name'] ==  Symbol ]   
+
+
+            else:
+                db = db[db['exch_seg'] == exchange]
+                db = db[db['symbol'] ==  Symbol ] 
+            
             logger.info("function called searchscrip")
             return db
         except Exception as err:
             logger.error(err)
             raise err
 
-searchscrip('NIFTY',instrument='OPTIDX')     
+# RES= searchscrip('NIFTY',instrument='FUTIDX') 
+
+symboldata=searchscrip(instrument='FUTIDXS')
+
+def preparetoken():
+    dkeys= {}
+    with open(path+f"/config/symbol.json", 'rb') as f:
+        loaded_dict = json.load(f)
+    tokens= []
+    symbol = loaded_dict['symbol']
+    for i in symbol:
+       data= searchscrip(i,instrument='FUTIDX')
+       data= data.sort_values(by='expiry')
+       
+       tk= data['token'].iloc[0]
+       print(tk)
+       tokens.append(tk)
+       dkeys[i]=[]
+
+
+    return tokens,dkeys
+
+tokens1,finaldata= preparetoken()
+class Ltp:
+    def __init__(self,data) :
+        try:
+            self.data= {}
+            self.data['LTP'] =int(data['last_traded_price'])/100 
+            self.data['updated_at']= time.time()
+            self.data['exchange_timestamp']= data['exchange_timestamp']
+            self.data['exchange']= 'NFO'
+            if data['exchange_type']==1:
+                self.data['exchange']= 'NSE'
+            elif data['exchange_type']==2:
+                self.data['exchange']= 'NFO'
+            elif data['exchange_type']==3:
+                self.data['exchange']= 'BSE'
+            elif data['exchange_type']==4:
+                self.data['exchange']= 'BFO'
+            self.data['token']= data['token']
+            self.data['volume']= data['volume_trade_for_the_day']  if 'volume_trade_for_the_day' in data.keys() else 0
+            sym=data['token']
+            
+            symbold=symboldata[symboldata['token']==sym]
+            sym = symbold['name'].iloc[-1]
+            date= datetime.datetime.today().date()
+            rawpath= os.path.join(path,f'data/feeddata/{date}/{sym}')
+
+            
+            if  not os.path.exists(rawpath):
+                os.makedirs(rawpath)
+            rawpath= os.path.join(rawpath,f'{sym}.json')
+            rawpath= os.path.normpath(rawpath)
+            self.save_depth_data(sym,self.data,rawpath)
+
+            #     time.sleep(1)
+            #     rawpath= os.path.join(rawpath,f'{sym}.json')
+            #     rawpath= os.path.normpath(rawpath)
+            #     file= open(rawpath,'a')
+            #     json.dump([],file,indent=4)
+            # else:
+            #     rawpath= os.path.join(rawpath,f'{sym}.json')
+            #     rawpath= os.path.normpath(rawpath)
+            #     file= open(rawpath,'a')
+            #     json.dump(self.data,file,indent=4)
+                
+
+
+
+        except Exception as e:
+            print(e)
+
+
+        
+    def save_depth_data(self, symbol, depth_data,rawpath):
+        """Save depth data to file"""
+        try:
+            file_exists = os.path.exists(rawpath)
+            
+            with open(rawpath, 'r+') as f:
+                if not file_exists:
+                    f.write('[')
+                else:
+                    f.seek(0, os.SEEK_END)
+                    f.seek(f.tell() - 1, os.SEEK_SET)
+                    print(rawpath)
+                    if f.read(1) == ']':
+                        f.seek(f.tell() - 1, os.SEEK_SET)
+                        f.truncate()
+                        f.write(',')
+                    else:
+                        f.write('[')
+                
+                json_data = depth_data.copy()
+                
+                f.write(json.dumps(json_data))
+                f.write(']')
+            
+            logger.info(f"Saved depth data for {symbol} to {rawpath}")
+            return True
+        except Exception as e:
+            logger.error(f"Error saving depth data for {symbol}: {str(e)}",exc_info=True)
+            return False
+
         
 
+# token=preparetoken()
+# print(token)
 class order:
     def __init__(self,data) :
         self.data= {}
@@ -177,7 +266,7 @@ class SMARTAPI(object) :
     
 
 class HTTP(SMARTAPI):
-    def __init__(self,user,api_key ='', username = '',pwd = '',token="4GYRKXNFGXZU26IO3SJU5ZUCYM"):
+    def __init__(self,user,api_key ='', username = '',pwd = '',token=""):
         super().__init__(self,api_key , username ,pwd,token)
         self.user=user
         self.smartApi=self.client_()
@@ -448,7 +537,7 @@ class HTTP(SMARTAPI):
         orderobject.save()
         return orderid
 class WebSocketConnect(SMARTAPI):
-   def __init__(self, user,api_key ='',  username = '',pwd = '',token="4GYRKXNFGXZU26IO3SJU5ZUCYM",update_depth=''):
+    def __init__(self, user,api_key ='',  username = '',pwd = '',token="",update_depth=''):
         super().__init__(user,api_key , username ,pwd)
         self.update_depth= update_depth
         
@@ -458,11 +547,13 @@ class WebSocketConnect(SMARTAPI):
         MIDCAP= 26014
 
         
-        
+    def start_thread(self):
+
 
         token = self.get_angel_client()
         authToken= token['authToken'].split(' ')[1]
         feedToken=token['feedToken']
+        
 
 
 
@@ -471,12 +562,17 @@ class WebSocketConnect(SMARTAPI):
         self.sws = smartWebSocketV2.SmartWebSocketV2(authToken, self.api, self.username, feedToken,
                                     max_retry_attempt=2, retry_strategy=0, retry_delay=10, retry_duration=30)
 
+
+
         self.correlation_id = "abcde"   
-        self.mode =1
+        self.mode =2
+
+        tokenlist,dkyes= preparetoken()
+        print(tokenlist)
         self.token_list = [
         {
-            "exchangeType": 1,
-            "tokens": ["26009"]
+            "exchangeType": 2,
+            "tokens": tokenlist
         }]   
     
 
@@ -486,7 +582,7 @@ class WebSocketConnect(SMARTAPI):
 
         def on_data(wsapp, message):
             logger.info("Ticks: {}".format(message))
-            # self.update_depth(message)
+            Ltp(message)
             print(message)
             # close_connection()
 
@@ -519,14 +615,6 @@ class WebSocketConnect(SMARTAPI):
         self.sws.on_error = on_error
         self.sws.on_control_message = on_control_message
 
-        # Infinite loop on the main thread.
-        # You have to use the pre-defined callbacks to manage subscriptions.
         self.sws.connect()
 
 
-
-    
-
-# a= HTTP(1)
-# res= a.wallet()
-# print(res)

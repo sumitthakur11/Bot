@@ -33,9 +33,28 @@ class misc:
 
         data=self.orderobject()
         self.fetchaccounts()
+        self.createdirsym()
+        print('initialised sucessfully')
 
         
+    def createdirsym(self):
+        try:
+              
+            symbol =self.getsymbols()
+            print(symbol)
+            if symbol is not None and  symbol:
+                for i in symbol['symbol']:
+                    symbolpath= os.path.join(path,f"data/feeddata/{i}")
+                    print(f'creating symbolpath {i}')
+                    symbolpath= os.path.normpath(symbolpath)
+
+                    if not os.path.exists(symbolpath):
+                        os.makedirs(symbolpath)
+        except Exception as e:
+             print(e)
+             logger.error(e,exc_info=True)
         
+
 
     
     def getsymbols(self):
@@ -128,7 +147,6 @@ class misc:
             orderobj=pd.DataFrame(orderobj,dtype='object')
             orderobjTrue=orderobj[orderobj['Status']==True]
 
-            # orderobj= orderobj[orderobj['Status']==True]
             if not orderobj.empty:
                 for i in range(len(orderobjTrue)):
                         print(orderobjTrue.iloc[i])
@@ -296,7 +314,7 @@ class misc:
         dffinal.to_csv(csvpath)
 
         return dffinal 
-    def checkpnlbox(self,LTP):
+    def checkpnlbox(self,LTP=''):
         try:
              
             settings= self.loadsettings()
@@ -467,3 +485,6 @@ class misc:
             logger.error(e,exc_info=True)
 
     
+    def startwebsocket(self):
+         a= Angel.WebSocketConnect(1)
+         a.start_thread()

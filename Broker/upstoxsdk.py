@@ -143,7 +143,7 @@ class upstoxclient(object) :
     
 
 class HTTP(upstoxclient):
-    def __init__(self,user,api_key ='vMoFaxjs', username = 'I9500',pwd = '7536',token=''):
+    def __init__(self,user,api_key ='', username = '',pwd = '',token=''):
         super().__init__(self,api_key , username ,pwd,token)
         self.user=user
         self.smartApi=self.client_()
@@ -395,7 +395,7 @@ class HTTP(upstoxclient):
         orderobject.save()
         return orderid
 class WebSocketConnect(upstoxclient):
-   def __init__(self, user,api_key ='vMoFaxjs', username = 'I9500',pwd = '7536',update_depth=''):
+   def __init__(self, user,api_key ='', username = '',pwd = '',update_depth=''):
         super().__init__(user,api_key , username ,pwd)
         self.update_depth= update_depth
         

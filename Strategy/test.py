@@ -90,13 +90,16 @@ def testclosorder():
 def testpnl():
     utilis.checkpnlbox()
 
+def websockettest():
+    utilis.startwebsocket()
 times= time.time()
 
 from concurrent.futures import ThreadPoolExecutor
 times= time.time()
-
+# angel.preparetoken()
+websockettest()
 # testclosorder()
-testorder()
+# testorder()
 # threadobj=ThreadPoolExecutor(max_workers=5)
 
 # for _ in range(5):

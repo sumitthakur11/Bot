@@ -17,7 +17,7 @@ logger=env.setup_logger(logpath)
 
 retryno= 0
 
-def scheduelbacktest():
+def scheduelbacktest(): 
     try:
         misc= utility.misc()
         symbollist=misc.getsymbols()
