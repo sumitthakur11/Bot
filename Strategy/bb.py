@@ -10,7 +10,7 @@ import pytz
 
 path= env.currenenv
 
-logpath= os.path.join(path,'botlogs/strategy1.logs')
+logpath= os.path.join(path,'Botlogs/strategy1.logs')
 logpath= os.path.normpath(logpath)
 print(logpath,'logpath')
 logger=env.setup_logger(logpath)
@@ -31,9 +31,11 @@ class strategy:
             data['lower']=data['basis']-data['dev']
             data['buy_final']= False
             data['sell_final']= False
+            data['buyconditions']=False
+            data['sellconditions']=False
 
 
-            print(data,'check data ')
+
             return data
         
         except Exception as e:
@@ -42,19 +44,18 @@ class strategy:
         
     def crossover(self,data):
         try:
-            data['buyconditions']=False
-            data['sellconditions']=False
-
+        
             for i in range(len(data)):
                 if data['close'].iloc[i]>data['upper'].iloc[i]:
                     data.loc[i,'buyconditions']=True
+
                 elif data['close'].iloc[i]<data['lower'].loc[i]:
                     data.loc[i,'sellconditions']=True
 
 
             return data
         except Exception as e:
-            logger.error(e)
+            logger.error(e,exc_info=True)
             
 
     def ema(self,data,length):
@@ -64,7 +65,7 @@ class strategy:
         return data
 
     def stdeviation(self,data,period):
-        data['vol_std']=pd.Series(data['close']).rolling(period).std()
+        data['vol_std']=pd.Series(data['volume']).rolling(period).std()
         return data
 
 
@@ -125,7 +126,7 @@ class strategy:
         orderparam=dict()
         orderparam['symboltoken']=26000
         orderparam['exchange']='NSE'
-        orderparam['transactiontype']='BUY'
+        orderparam['transactiontype']=side
         orderparam['product_type']='MIS'
         orderparam['quantity']=1
         orderparam['order_type']='MKT'
@@ -143,10 +144,15 @@ class strategy:
         orderparam['Tslhit']=False
 
         return orderparam
+    
+    def exitbackest(self):
+        pass
+
 
     
     def main(self,data,backtest):
         try:
+            
 
             data= self.finalconditons(data)
             sl=self.settings['sl_pct']
@@ -169,7 +175,7 @@ class strategy:
                 orderparam=self.ordersing(price,sl,target,trail,qty,'BUY',0)
                 orderparam['updated_atdiff']=data['updated_at'].iloc[-1].minute-data['updated_at'].iloc[-2].minute
                 self.utilityobj.processorder(orderparam,backtest=backtest)
-            elif data['sell_final'].iloc[-1] and not data['buy_final'].iloc[-2]  :
+            elif data['sell_final'].iloc[-1] and not data['sell_final'].iloc[-2]  :
                 orderparam=self.ordersing(price,sl,target,trail,qty,'SELL',0)
                 orderparam['updated_atdiff']=data['updated_at'].iloc[-1].minute-data['updated_at'].iloc[-2].minute
 

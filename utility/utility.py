@@ -1,5 +1,4 @@
 from Bot import env
-from Bot.Broker import upstoxsdk as upstox
 from Bot.Broker import Angelsdk as Angel
 
 import os
@@ -13,7 +12,7 @@ import numpy as np
 
 # path= os.getcwd()
 path = env.currenenv
-logpath= os.path.join(path,'botlogs/utility.logs')
+logpath= os.path.join(path,'Botlogs/utility.logs')
 logpath= os.path.normpath(logpath)
 # logpath= os.path.join(logpath,'Angelbroker.logs')
 print(logpath,'logpath')
@@ -23,9 +22,9 @@ print(logpath,'logpath')
 logger=env.setup_logger(logpath)
 class misc:
     def __init__(self):
-        orderdata= [['',datetime.datetime.now(),'','','','','',False,0.0,0,0.0,'',0.0,False,False,False,datetime.datetime.now(),0.0,0.0,0.0,False,'','','',0.0]]
+        orderdata= [['',datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata')),'','','','','',False,0.0,0,0.0,'',0.0,False,False,False,datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata')),0.0,0.0,0.0,False,'','','',0.0,False]]
 
-        self.orderdata = pd.DataFrame(orderdata,columns=['AccountNo','Entrytime','Broker','Side','Buyorderid','Symbol','Token','Status','Ltp','Qty','AveragePrice','Sellorderid','Sellprice','TargetHit','Slhit','Tslhit','Exittime','Target','Trail','Sl','Backtest','Transactiontype','Order_type','Exchange','Pnl'],dtype='object')
+        self.orderdata = pd.DataFrame(orderdata,columns=['AccountNo','Entrytime','Broker','Side','Buyorderid','Symbol','Token','Status','Ltp','Qty','AveragePrice','Sellorderid','Sellprice','TargetHit','Slhit','Tslhit','Exittime','Target','Trail','Sl','Backtest','Transactiontype','Order_type','Exchange','Pnl','Tslactive'],dtype='object')
         self.account = pd.DataFrame(columns=['AccountNo','Apikey','Secret','Password','Token'],dtype='object')
        
         
@@ -33,7 +32,7 @@ class misc:
 
         data=self.orderobject()
         self.fetchaccounts()
-        self.createdirsym()
+        # self.createdirsym()
         print('initialised sucessfully')
 
         
@@ -90,7 +89,8 @@ class misc:
     def getdata(self,symbol,test):
         try:
             if not test:
-                 filepath= os.path.join(path,f"data/feeddata/{symbol}.csv")
+                 data =self.getmergedata(symbol)
+                 return data
             else:
                  filepath= os.path.join(path,f"data/testdata/{symbol}.csv")
                  
@@ -108,6 +108,30 @@ class misc:
         except Exception as e :
             logger.error(e,exc_info=True)
 
+
+    def getmergedata(self,sym):
+        datapath = os.path.join(path,"data/feeddata")
+        dirlist= os.listdir(datapath)
+        finaldata = []
+        sym = sym.upper()
+
+        for i in dirlist:
+              newpath = os.path.join(path,f"data/feeddata/{i}/{sym}/{sym}.json")
+              print(newpath)
+              newpath= os.path.normpath(newpath)
+              dfnew= pd.read_json(newpath)
+              finaldata.append(dfnew)
+        dffinal = pd.concat(finaldata, ignore_index=True)
+
+        return dffinal
+
+
+              
+              
+
+
+             
+         
 
     def orderobject(self,newdata='',newdataflag=False):
         try:
@@ -167,7 +191,7 @@ class misc:
                                     
                                     orderparam['Token']=26009
                                     orderparam['exchange']='NSE'
-                                    orderparam['Transactiontype']='BUY'
+                                    orderparam['Transactiontype']='SELL' if orderobjTrue['Transactiontype']=='BUY' else 'BUY'
                                     orderparam['product_type']='MIS'
                                     orderparam['ordertype']='MIS'
                                     orderparam['price']=orderobj['Ltp'].iloc[i]
@@ -177,7 +201,7 @@ class misc:
                                     orderid=brokeri.closetrade(orderparam,orderobj['Backtest'].iloc[i])
                                     if orderid:
                                         orderobj.loc[ind,'Status']=False
-                                        orderobj.loc[ind,'Exittime']=datetime.datetime.now()
+                                        orderobj.loc[ind,'Exittime']=datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata'))
                                         orderobj.loc[ind,'Sellorderid']=orderid
                                         orderobj.loc[ind,'Sellprice']=orderobjTrue['Ltp'].iloc[i]
                                         orderobj.loc[ind,'Pnl']=float(orderobjTrue['AveragePrice'].iloc[i]-orderobjTrue['Ltp'].iloc[i])*orderobjTrue['Qty'].iloc[i]
@@ -185,11 +209,11 @@ class misc:
 
                                         
                             
-                            elif (orderobjTrue['Slhit'].iloc[i] or orderobjTrue['TargetHit'].iloc[i] or orderobjTrue['Tslhit'].iloc[i]) and  orderobjTrue['Backtest'].iloc[i]  :
+                            elif (orderobjTrue['Slhit'].iloc[i] or orderobjTrue['Tslhit'].iloc[i]) and  orderobjTrue['Backtest'].iloc[i]  :
                                     logger.info('Check order close')
                                     print('buffer',orderobjTrue['Slhit'].iloc[i],orderobjTrue['TargetHit'].iloc[i],orderobjTrue['Tslhit'].iloc[i])
                                     orderobj.loc[ind,'Status']=False
-                                    orderobj.loc[ind,'Exittime']=datetime.datetime.now()
+                                    orderobj.loc[ind,'Exittime']=datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata'))
                                     orderobj.loc[ind,'Sellorderid']=self.uniqueno()
                                     orderobj.loc[ind,'Sellprice']=orderobjTrue['Ltp'].iloc[i]
                                     orderobj.loc[ind,'Pnl']=float(orderobjTrue['Ltp'].iloc[i]-orderobjTrue['AveragePrice'].iloc[i])*orderobjTrue['Qty'].iloc[i]
@@ -214,10 +238,11 @@ class misc:
             orderobj=self.orderobject()
             print(datetime.timedelta(minutes=orderparams['updated_atdiff']))
             print(orderobj['Entrytime'].iloc[-1]/1000)
-            print(datetime.datetime.fromtimestamp(orderobj['Entrytime'].iloc[-1]/1000))
+            print(datetime.datetime.fromtimestamp(orderobj['Entrytime'].iloc[-1]/1000,tz=pytz.timezone('Asia/Kolkata')))
             
             print(datetime.datetime.fromtimestamp(orderobj['Entrytime'].iloc[-1]/1000)+ datetime.timedelta(minutes=orderparams['updated_atdiff']))
-            if datetime.datetime.now()> datetime.datetime.fromtimestamp(orderobj['Entrytime'].iloc[-1]/1000)+datetime.timedelta(minutes=orderparams['updated_atdiff']):
+            logger.info(datetime.datetime.fromtimestamp(orderobj['Entrytime'].iloc[-1]/1000,tz=pytz.timezone('Asia/Kolkata')))
+            if datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata'))> datetime.datetime.fromtimestamp(orderobj['Entrytime'].iloc[-1]/1000,tz=pytz.timezone('Asia/Kolkata'))+datetime.timedelta(minutes=orderparams['updated_atdiff']):
                 
                 
                 orderobj=orderobj[orderobj['Backtest']==True]
@@ -299,21 +324,127 @@ class misc:
 
         df2= pd.read_csv(datapath)
 
-        datapath= "Bot/data/ZohoWorkDrive/01-2025/01-2025/NIFTY_I.csv"
+        datapath= "Bot/data/ZohoWorkDrive/12-2024/12-2024/NIFTY_I.csv"
         datapath= os.path.join(path,datapath)
         datapath= os.path.normpath(datapath)
 
         df3= pd.read_csv(datapath)
+
+        datapath= "Bot/data/ZohoWorkDrive/01-2025/01-2025/NIFTY_I.csv"
+        datapath= os.path.join(path,datapath)
+        datapath= os.path.normpath(datapath)
+
+        df4= pd.read_csv(datapath)
         
-        dffinal = pd.concat([df1, df2, df3], ignore_index=True)
+        dffinal = pd.concat([df1, df2, df3,df4], ignore_index=True)
         dffinal['updated_at']= pd.to_datetime(dffinal['Date'],format='%Y%m%d')
         dffinal['updated_at']=dffinal['updated_at']+pd.to_timedelta(dffinal['Time'])
         dffinal['updated_at'] = dffinal['updated_at'].dt.tz_localize('Asia/Kolkata')
-        csvpath = os.path.join(path,'data/testdata/NIFTY50.csv')
+        csvpath = os.path.join(path,'data/testdata/NIFTY.csv')
         csvpath=os.path.normpath(csvpath)
         dffinal.to_csv(csvpath)
 
         return dffinal 
+    def checkpnlbox1(self,data):
+        settings= self.loadsettings()
+        averageprice=0
+        targetprbuy=0
+        averagesellprice=0
+        targetsell=0
+        targetbuy=0
+        stoplossbuy=stoplossell=False
+        data['high']= data['high'].astype('float')      
+        data['exit']= data['exit'].astype('object')   
+        data['entry']= data['entry'].astype('object') 
+        data['side']= data['side'].astype('object')   
+        data['sellprice']= data['sellprice'].astype('float')
+        data['averageprice']= data['averageprice'].astype('float') 
+        data['pnl']= data['averageprice'].astype('float')   
+        
+        for i in range(len(data)):
+
+            
+            if  data['buy_final'].iloc[i]  and  not averageprice:
+                averageprice=data['close'].iloc[i]
+                data.loc[i,'averageprice']= float(averageprice)
+
+                data.loc[i,'entry']=True
+                data.loc[i,'side']='LONG'
+            elif  data['sell_final'].iloc[i] and not averagesellprice :
+                averagesellprice=data['close'].iloc[i]
+                data.loc[i,'averageprice']= averagesellprice
+                data.loc[i,'side']='SHORT'
+
+                data.loc[i,'entry']=True
+            
+
+            if averageprice:
+                prevtrailbuy = data['high'].iloc[i]*settings['trail_offset_pct']
+                targetprbuy=averageprice*(1+settings['tp_pct'])
+                targetbuy = data['high'].iloc[i]>targetprbuy
+                stoplossbuy = data['low'].iloc[i]<averageprice*(1-settings['sl_pct'])
+
+
+            if targetbuy:
+                if (data['high'].iloc[i]<targetprbuy+prevtrailbuy  and targetbuy) :
+                     data.loc[i,'exit']= True
+                     data.loc[i,'sellprice']= data['high'].iloc[i]
+
+                     data.loc[i,'pnl']=float( data['high'].iloc[i])-averageprice
+                     targetprbuy=False
+                     stoplossbuy=False
+                     averageprice=0
+            elif stoplossbuy:
+                    data.loc[i,'exit']= True
+                    data.loc[i,'sellprice']= data['low'].iloc[i]
+                    data.loc[i,'pnl']=float( data['low'].iloc[i])-averageprice
+                    targetprbuy=False
+                    stoplossbuy=False
+                    averageprice=0
+
+                 
+
+
+            if averagesellprice:
+                 
+                stoplossell = data['high'].iloc[i]>averagesellprice*(1+settings['sl_pct'])
+                prevtrailsell = data['low'].iloc[i]*settings['trail_offset_pct']
+                targetprsell=averagesellprice*(1-settings['tp_pct'])
+                targetsell = data['low'].iloc[i]<targetprsell
+            
+            if targetsell:
+                 
+                if (data['low'].iloc[i]>targetprsell-prevtrailsell  and targetsell) :
+                        data.loc[i,'exit']= True
+                        data.loc[i,'sellprice']= data['low'].iloc[i]
+
+                        data.loc[i,'pnl']= averagesellprice-data['low'].iloc[i]
+                        targetsell= False
+                        stoplossell= False
+                        averagesellprice=0
+
+            if stoplossell:
+                    data.loc[i,'exit']= True
+                    data.loc[i,'sellprice']= data['high'].iloc[i]
+
+                    data.loc[i,'pnl']= averagesellprice-data['high'].iloc[i]
+                    targetsell= False
+                    stoplossell= False
+                    averagesellprice=0
+                 
+
+        return data
+                 
+
+            
+                     
+
+            
+
+            
+
+                
+             
     def checkpnlbox(self,LTP=''):
         try:
              
@@ -324,7 +455,7 @@ class misc:
             orderobj['Slhit']= orderobj['Slhit'].astype('object')      
             orderobj['TargetHit']= orderobj['TargetHit'].astype('object')      
             orderobj['Tslhit']= orderobj['Tslhit'].astype('object')      
-            if not orderobj.empty:
+            if not orderobjTrue.empty:
                 for i in range(len(orderobjTrue)):
 
                     if orderobjTrue['Status'].iloc[i]:
@@ -335,7 +466,6 @@ class misc:
                         print(ind)
 
                         orderobj.loc[ind,'Ltp']= ltp
-                        print(i,orderobj.loc[i,'Ltp'])
                         print('check pnl$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$',ltp)
                         
                         if (ltp<orderobjTrue['AveragePrice'].iloc[i]*(1-settings['sl_pct'])) and (orderobjTrue['Side'].iloc[i]=='LONG'):
@@ -362,13 +492,22 @@ class misc:
                         elif (ltp>orderobjTrue['AveragePrice'].iloc[i]*(1+settings['trail_stop_pct'])) and (orderobjTrue['Side'].iloc[i]=='SHORT'):
                                 orderobj.loc[ind,'Slhit']=True
 
-                    
-                        if (ltp<orderobjTrue['AveragePrice'].iloc[i]*(1+settings['trail_offset_pct'])) and (orderobjTrue['Side'].iloc[i]=='LONG'):
+                        prevtrailbuy = ltp*settings['trail_offset_pct']
+                        prevtrailsell = ltp*settings['trail_offset_pct']
+                        targetprbuy=orderobjTrue['AveragePrice'].iloc[i]*(1+settings['tp_pct'])
+                        targetprsell=orderobjTrue['AveragePrice'].iloc[i]*(1-settings['tp_pct'])
+                                      
+                        if (ltp<targetprbuy+prevtrailbuy) and (orderobjTrue['Side'].iloc[i]=='LONG') and orderobjTrue['TargetHit'].iloc[i]:
+                                
                                 orderobj.loc[ind,'Tslhit']=True
                                 print(orderobj,'$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
                                 print(orderobj['AveragePrice'].iloc[i]*(1+settings['trail_offset_pct']))
-                        elif (ltp>orderobjTrue['AveragePrice'].iloc[i]*(1-settings['trail_offset_pct'])) and (orderobjTrue['Side'].iloc[i]=='SHORT'):
+                        elif (ltp>targetprsell-prevtrailsell) and (orderobjTrue['Side'].iloc[i]=='SHORT') and orderobjTrue['TargetHit'].iloc[i] :
                                 orderobj.loc[ind,'Tslhit']=True
+
+                    
+
+                        
                         self.orderobject(newdata=orderobj,newdataflag=True)
                     else:
                          pass
@@ -447,6 +586,24 @@ class misc:
 
         
 
+    def ohlc(self,data,timeframe=None,baktest=False,count=1):
+        data['updated_at']= pd.to_datetime(data['updated_at'])
+        df = data.set_index('updated_at')
+        if count==1:
+             
+            open_price = df['Close'].resample(timeframe).ohlc()
+        else:
+            open_price = df['close'].resample(timeframe).ohlc()
+             
+             
+
+        data=open_price.dropna()
+        data = data.reset_index()
+        return data
+
+    
+
+
     def buildcandels(self,data,timeframe_seconds=None,backtest=False):
         try:    
                 
@@ -479,6 +636,7 @@ class misc:
                 })
                 self.ohlc=self.ohlc.dropna()
                 self.ohlc = self.ohlc.reset_index()
+                
                 return self.ohlc
         except Exception as e:
             
@@ -486,5 +644,7 @@ class misc:
 
     
     def startwebsocket(self):
-         a= Angel.WebSocketConnect(1)
-         a.start_thread()
+        angellogin= Angel.SMARTAPI(1)
+        angellogin.smartAPI_Login()
+        a= Angel.WebSocketConnect(1)
+        a.start_thread()

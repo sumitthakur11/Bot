@@ -1,10 +1,10 @@
 from Bot import env
-from utility import misc
+from Bot.utility import utility
 import os
 import sys
 
 path = env.currenenv
-logpath= os.path.join(path,'botlogs/utility.logs')
+logpath= os.path.join(path,'Botlogs/utility.logs')
 logpath= os.path.normpath(logpath)
 print(logpath,'logpath')
 
@@ -16,9 +16,10 @@ retryno=0
 def checkopenorder(self):
     while True:
         try :
+            misc= utility.misc()
                 
-                misc.closeorder()
-                misc.checkpnlbox()
+            misc.closeorder()
+            misc.checkpnlbox()
             
 
         except KeyboardInterrupt as key:

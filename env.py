@@ -1,9 +1,24 @@
 import os 
 import sys
-try :
+from pathlib import Path
 
-    abspaths=os.environ['VIRTUAL_ENV']
-    currenenv= os.path.abspath(abspaths)
+try :
+    
+    if 'VIRTUAL_ENV'  in os.environ:
+        abspaths=os.environ['VIRTUAL_ENV']
+        currenenv= os.path.abspath(abspaths)
+    elif 'PYTHONPATH' in os.environ:
+        abspaths=os.environ['PYTHONPATH']
+        abspaths= abspaths.split(':')[0]
+        currenenv=abspaths
+    
+    else:
+        currenenv= Path(__file__).resolve().parent.parent
+    
+    sys.stdout.write(f'****BaseDir: {currenenv}****\n\n')
+    sys.stdout.write(f'****Checking Network Connection*******\n\n')
+
+
 
 
 except Exception as e:
@@ -17,9 +32,28 @@ except Exception as e:
     print("Use pip to install all the packages listed in requirements.txt:pip install -r requirements.txt")
     print('- Verify Installation')
     print('Once the installation is complete, ensure the packages are installed by running: pip list')
+    print(e)
     sys.exit(1)
 
 
+
+import socket
+
+def check_network_connection(host="8.8.8.8", port=53, timeout=3):
+    try:
+        socket.setdefaulttimeout(timeout)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect((host, port))
+            
+        return True
+    except (socket.timeout, socket.error):
+        return False
+
+if check_network_connection():
+    print("============>>>> Network connection is active.<<<<<<<<============")
+else:
+    print("============>>>> No network connection.Kindly Connect to the stable internet connection<<<<<<<<============")
+    sys.exit(1)
 
 
 
@@ -56,7 +90,8 @@ def defaultset():
                                         "trail_stop_pct":0.002,
                                         "trail_offset_pct":0.002,
                                         "sl_pct":0.001,
-                                        "tp_pct":0.001
+                                        "tp_pct":0.001,
+                                        "tmf":'5min'
                                         }
             defaultsettings['Angelcred']={
                 "api_key":"",
@@ -86,7 +121,7 @@ def defaultset():
 
         print(f"- Path to change default settings and add Broker configuration to get Ltp feeds  {configpath}")
         print(f"- Path to add symbols in the list  {symbolpath}")
-        print(f"- symbol should be add in the list like this symbol: ['NIFTY50','SENSEX','ETC']")
+        print(f"- symbol should be add in the list like this symbol: ['NIFTY','SENSEX','ETC']")
 
 
     except Exception as e:
@@ -120,21 +155,14 @@ def defaultcsv():
     if not os.path.exists(accountpath):
         account = pd.DataFrame(columns=['AccountNo','Apikey','Secret','Password','Token'],dtype='object')
         account.to_csv(accountpath)
-        print("- creating account csv. Please add your upstox account in requied format")
+        print("- creating account csv. Please add your Angel account in requied format")
         print("- Kindly Do Not Change The foramts of any files")
     print("- path of files are as follows: ")
     print(f"- Path for check orderbook  {orderpath}")
-    print(f"- Path for update all upstox account details  {accountpath}")
+    print(f"- Path for update all Angel account details  {accountpath}")
 
 
           
-          
-    
-
-    
-
-    
-
 listpath= ['data/backtestdata','data/db','data/feeddata',
            'data/liveorderdata','data/testdata','config','Broker','Botlogs','Backtestresult']
             

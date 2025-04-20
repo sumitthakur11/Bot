@@ -23,13 +23,11 @@ from stat import *
 
 
 path= env.currenenv
-logpath= os.path.join(path,'botlogs/Angelbroker.logs')
+logpath= os.path.join(path,'Botlogs/Angelbroker.logs')
 logpath= os.path.normpath(logpath)
 # logpath= os.path.join(logpath,'Angelbroker.logs')
 print(logpath,'logpath')
 logger=env.setup_logger(logpath)
-
-
 def searchscrip (Symbol='',exchange='NFO',instrument=''):
         try:
 
@@ -92,7 +90,7 @@ class Ltp:
     def __init__(self,data) :
         try:
             self.data= {}
-            self.data['LTP'] =int(data['last_traded_price'])/100 
+            self.data['Close'] =int(data['last_traded_price'])/100 
             self.data['updated_at']= time.time()
             self.data['exchange_timestamp']= data['exchange_timestamp']
             self.data['exchange']= 'NFO'
@@ -105,13 +103,16 @@ class Ltp:
             elif data['exchange_type']==4:
                 self.data['exchange']= 'BFO'
             self.data['token']= data['token']
-            self.data['volume']= data['volume_trade_for_the_day']  if 'volume_trade_for_the_day' in data.keys() else 0
+            self.data['Volume']= data['volume_trade_for_the_day']  if 'volume_trade_for_the_day' in data.keys() else 0
+            self.data['OI']= data['open_interest']  if 'open_interest' in data.keys() else 0
+
             sym=data['token']
             
             symbold=symboldata[symboldata['token']==sym]
             sym = symbold['name'].iloc[-1]
             date= datetime.datetime.today().date()
-            rawpath= os.path.join(path,f'data/feeddata/{date}/{sym}')
+
+            rawpath= os.path.join(path,f'data/feeddata/{date.month}-{date.year}/{sym}')
 
             
             if  not os.path.exists(rawpath):
@@ -119,18 +120,6 @@ class Ltp:
             rawpath= os.path.join(rawpath,f'{sym}.json')
             rawpath= os.path.normpath(rawpath)
             self.save_depth_data(sym,self.data,rawpath)
-
-            #     time.sleep(1)
-            #     rawpath= os.path.join(rawpath,f'{sym}.json')
-            #     rawpath= os.path.normpath(rawpath)
-            #     file= open(rawpath,'a')
-            #     json.dump([],file,indent=4)
-            # else:
-            #     rawpath= os.path.join(rawpath,f'{sym}.json')
-            #     rawpath= os.path.normpath(rawpath)
-            #     file= open(rawpath,'a')
-            #     json.dump(self.data,file,indent=4)
-                
 
 
 
@@ -144,10 +133,18 @@ class Ltp:
         try:
             file_exists = os.path.exists(rawpath)
             
-            with open(rawpath, 'r+') as f:
-                if not file_exists:
+            if not file_exists:
+                with open(rawpath, 'a') as f:
+                    
                     f.write('[')
-                else:
+                    json_data = depth_data.copy()
+                    
+                    f.write(json.dumps(json_data))
+                    f.write(']')
+            
+            else:
+                with open(rawpath, 'r+') as f:
+                    
                     f.seek(0, os.SEEK_END)
                     f.seek(f.tell() - 1, os.SEEK_SET)
                     print(rawpath)
@@ -157,11 +154,11 @@ class Ltp:
                         f.write(',')
                     else:
                         f.write('[')
-                
-                json_data = depth_data.copy()
-                
-                f.write(json.dumps(json_data))
-                f.write(']')
+
+                    json_data = depth_data.copy()
+                    
+                    f.write(json.dumps(json_data))
+                    f.write(']')
             
             logger.info(f"Saved depth data for {symbol} to {rawpath}")
             return True
@@ -171,8 +168,7 @@ class Ltp:
 
         
 
-# token=preparetoken()
-# print(token)
+
 class order:
     def __init__(self,data) :
         self.data= {}
@@ -475,22 +471,12 @@ class HTTP(SMARTAPI):
             orderupdate.loc[lastindex,'Sl']=orderparam['sl']
             orderupdate.loc[lastindex,'Target']=orderparam['target']
             orderupdate.loc[lastindex,'Trail']=orderparam['trail']
-            orderupdate.loc[lastindex,'Entrytime']=datetime.datetime.now()
+            orderupdate.loc[lastindex,'Entrytime']=datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata'))
             orderupdate.loc[lastindex,'Exchange']=orderparam['exchange']
             orderupdate.loc[lastindex,'Side']='LONG' if orderparam['transactiontype']=='BUY' else 'SHORT'
             orderupdate.loc[lastindex,'TargetHit']=orderparam['TargetHit']
             orderupdate.loc[lastindex,'Slhit']=orderparam['Slhit']     
             orderupdate.loc[lastindex,'Tslhit']=orderparam['Tslhit']     
-
-            
-
-
-        
-
-
-
-
-            
             orderobject(newdata=orderupdate,newdataflag=True)
             
             
@@ -565,7 +551,7 @@ class WebSocketConnect(SMARTAPI):
 
 
         self.correlation_id = "abcde"   
-        self.mode =2
+        self.mode =3
 
         tokenlist,dkyes= preparetoken()
         print(tokenlist)

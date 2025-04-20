@@ -10,7 +10,7 @@ from Bot.Broker import Angelsdk as angel
 
 path = env.currenenv
 
-logpath= os.path.join(path,'botlogs/test.logs')
+logpath= os.path.join(path,'Botlogs/test.logs')
 logpath= os.path.normpath(logpath)
 print(logpath,'logpath')
 logger=env.setup_logger(logpath)
@@ -26,10 +26,10 @@ def test():
         symbol = misc.getsymbols()
         for i in symbol:
             testdata = misc.gettestdata(i)
-            data= obj.buildcandels(testdata,'5min')
-            for j in data.items():
-                Strategy.bb.main(j)
-        logger.info(f"Test Completed for {i}")
+            data= misc.buildcandels(testdata,'5min',True)
+            obj=bb.strategy()
+            obj.main(data,True)
+            logger.info(f"Test Completed for {i}")
 
     except Exception as e:
         logger.error(f"Error in test: {e}")
@@ -62,7 +62,7 @@ def testorder():
     orderparam['ltp']=22900
     orderparam['tradingsymbol']='NIFTY50'
     orderparam['Side']='Long'
-    orderparam['updated_atdiff']=10
+    orderparam['updated_atdiff']=1
     orderparam['TargetHit']=False
     orderparam['Tslhit']=False
     orderparam['Slhit']=False
@@ -72,7 +72,6 @@ def testorder():
 
 
     order= obj.processorder(orderparam)
-    # time.wait(0.5)
     
 def testmerge():
     data=utilis.mergebacktest()
@@ -93,18 +92,12 @@ def testpnl():
 def websockettest():
     utilis.startwebsocket()
 times= time.time()
-
+# data =utilis.getmergedata('nifty')
+websockettest()
 from concurrent.futures import ThreadPoolExecutor
 times= time.time()
-# angel.preparetoken()
-websockettest()
-# testclosorder()
-# testorder()
-# threadobj=ThreadPoolExecutor(max_workers=5)
 
-# for _ in range(5):
-# threadobj.submit(testmerge)
 
-print('threading',time.time()-times)
-
-# testclosorder()
+import datetime
+date= datetime.datetime.today()
+print(f"{date.year}-{date.month}")

@@ -1,10 +1,10 @@
 from Bot import env
-from utility import misc
+from Bot.utility import utility
 import os
 import sys
 
 path = env.currenenv
-logpath= os.path.join(path,'botlogs/utility.logs')
+logpath= os.path.join(path,'Botlogs/utility.logs')
 logpath= os.path.normpath(logpath)
 # logpath= os.path.join(logpath,'Angelbroker.logs')
 print(logpath,'logpath')
@@ -16,7 +16,7 @@ retryno=0
 
 def startsocket(self):
     try :
-
+        misc= utility.misc()
         misc.startwebsocket()
     except KeyboardInterrupt as key:
         logger.info(f"keyboard intrupted stopping the quode feed ")
