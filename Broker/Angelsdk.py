@@ -67,9 +67,13 @@ def searchscrip (Symbol='',exchange='NFO',instrument=''):
 
 symboldata=searchscrip(instrument='FUTIDXS')
 
+
 def preparetoken():
     dkeys= {}
-    with open(path+f"/config/symbol.json", 'rb') as f:
+    print(path)
+    sympath = os.path.join(path,"config/symbol.json")
+    sympath= os.path.normpath(sympath)
+    with open(sympath) as f:
         loaded_dict = json.load(f)
     tokens= []
     symbol = loaded_dict['symbol']
@@ -109,7 +113,13 @@ class Ltp:
             sym=data['token']
             
             symbold=symboldata[symboldata['token']==sym]
+
             sym = symbold['name'].iloc[-1]
+            self.data['symbol']= symbold['symbol'].iloc[-1]
+            self.data['lotsize']= symbold['lotsize'].iloc[-1]
+
+
+
             date= datetime.datetime.today().date()
 
             rawpath= os.path.join(path,f'data/feeddata/{date.month}-{date.year}/{sym}')
@@ -119,6 +129,10 @@ class Ltp:
                 os.makedirs(rawpath)
             rawpath= os.path.join(rawpath,f'{sym}.json')
             rawpath= os.path.normpath(rawpath)
+            # if not os.path.exists(rawpath):
+            #     file= open(rawpath,'a')
+            #     json.dump([],file,indent=4)
+
             self.save_depth_data(sym,self.data,rawpath)
 
 
@@ -202,7 +216,8 @@ class SMARTAPI(object) :
         
     def cred(self):
         try:
-            with open(path+f"/config/config.json", 'rb') as f:
+            credpath = os.path.join(path,"config/config.json")
+            with open(credpath, 'rb') as f:
                 loaded_dict = json.load(f)
                 print(loaded_dict,'loadeddict')
             return loaded_dict

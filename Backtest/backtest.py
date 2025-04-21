@@ -30,7 +30,7 @@ def scheduelbacktest():
         datalist= []
         login= Angelsdk.SMARTAPI(1)
         login.smartAPI_Login()
-        for i in symbollist['symbol']:
+        for i in symbollist['backtestsymbol']:
             logger.info(f"backtest starts for symbol:{i}")
             data = misc.getdata(i,test=True)
             print(len(data))
@@ -49,14 +49,18 @@ def scheduelbacktest():
                 end_time = pd.Timestamp('15:25').time()
                 data = data[(data['updated_at'].dt.time >= start_time) & (data['updated_at'].dt.time <= end_time)]
                 data= data.dropna()
+                if 'level_0' in data.columns:
+                      data = data.drop(columns=['level_0'])
+                
                 data= data.reset_index()
 
 
                 flag=stat.main(data,True)
                 misc.checkpnlbox(float(data['close'].iloc[j]))
                 misc.closeorder()
-                passed= "strategy runnning well" if {flag} else "something went wrong.check detail in strategy executions logs"
+                passed= "backtest runnning well" if {flag} else "something went wrong.check detail in strategy executions logs"
                 logger.debug(passed)
+                print(passed)
         logger.info(f"backtest completed for symbol:{i}")
         generatereport()
     except KeyboardInterrupt as kr:
@@ -94,6 +98,10 @@ def generatereport():
     orderdata =misc.orderobject()
     date= int(time.time()*1000)
     reportpath= os.path.join(path,f'Backtestresult/{date}.csv')
+    orderdata['CumulativePnL'] = orderdata['Pnl'].cumsum()
+    orderdata['RunningMax'] = orderdata['CumulativePnL'].cummax()
+    orderdata['Drawdown'] = orderdata['CumulativePnL'] - orderdata['RunningMax']
+            
     orderdata.to_csv(reportpath)
     logger.info('Backtest Report Generated Sucessfully')
 
@@ -102,7 +110,7 @@ def generatereport():
 def exitbackest():
     symbollist=misc.getsymbols()
 
-    for i in symbollist['symbol']:
+    for i in symbollist['backtestsymbol']:
         logger.info(f"backtest starts for symbol:{i}")
         data = misc.getdata(i,test=True)
         data= misc.buildcandels(data,'1min',True)
@@ -122,8 +130,12 @@ def exitbackest():
         data['side']= ''
         data['exit']= False
         data['sellprice']= 0
-        data['pnl']=0
+        data['Pnl']=0
         data =misc.checkpnlbox1(data)
+        data['CumulativePnL'] = data['Pnl'].cumsum()
+        data['RunningMax'] = data['CumulativePnL'].cummax()
+        data['Drawdown'] = data['CumulativePnL'] - data['RunningMax']
+            
         date= int(time.time()*1000)
     reportpath= os.path.join(path,f'Backtestresult/fast{date}.csv')
     data.to_csv(reportpath)

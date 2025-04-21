@@ -93,7 +93,7 @@ def websockettest():
     utilis.startwebsocket()
 times= time.time()
 # data =utilis.getmergedata('nifty')
-websockettest()
+# websockettest()
 from concurrent.futures import ThreadPoolExecutor
 times= time.time()
 
@@ -101,3 +101,6 @@ times= time.time()
 import datetime
 date= datetime.datetime.today()
 print(f"{date.year}-{date.month}")
+
+symboldata=angel.searchscrip(instrument='FUTIDXS')
+print(symboldata)

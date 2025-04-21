@@ -122,13 +122,12 @@ class strategy:
         return data
 
          
-    def ordersing(self,price,sl,target,trail,qty,side,amount):
+    def ordersing(self,price,sl,target,trail,qty,side,amount,symbol,symboltoken):
         orderparam=dict()
-        orderparam['symboltoken']=26000
-        orderparam['exchange']='NSE'
+        orderparam['symboltoken']=symboltoken
+        orderparam['exchange']="NFO"
         orderparam['transactiontype']=side
         orderparam['product_type']='MIS'
-        orderparam['quantity']=1
         orderparam['order_type']='MKT'
         orderparam['price']= price
         orderparam['sl']=sl
@@ -137,7 +136,7 @@ class strategy:
         orderparam['Amount']=amount
         orderparam['quantity']=qty
         orderparam['ltp']=price
-        orderparam['tradingsymbol']='NIFTY50'
+        orderparam['tradingsymbol']=symbol
         orderparam['Side']=side
         orderparam['Slhit']=False
         orderparam['TargetHit']=False
@@ -159,8 +158,8 @@ class strategy:
             trail=self.settings['trail_offset_pct']
             target=self.settings['tp_pct']
             stoptrail=self.settings['trail_stop_pct']
-            price=data['close'].iloc[-1]
-            qty=75
+            price=data['close'].iloc[-1] 
+            qty=data['lotsize'].iloc[-1] if not backtest else 75
             if not backtest:
 
                 nowtime= datetime.now(tz=pytz.timezone('Asia/Kolkata')).minute>data['updated_at'].iloc[-1].minute
@@ -172,11 +171,13 @@ class strategy:
 
             
             if data['buy_final'].iloc[-1] and not data['buy_final'].iloc[-2]   :
-                orderparam=self.ordersing(price,sl,target,trail,qty,'BUY',0)
+
+                
+                orderparam=self.ordersing(price,sl,target,trail,qty,'BUY',0,data['symbol'].iloc[-1],data['token'].iloc[-1])
                 orderparam['updated_atdiff']=data['updated_at'].iloc[-1].minute-data['updated_at'].iloc[-2].minute
                 self.utilityobj.processorder(orderparam,backtest=backtest)
             elif data['sell_final'].iloc[-1] and not data['sell_final'].iloc[-2]  :
-                orderparam=self.ordersing(price,sl,target,trail,qty,'SELL',0)
+                orderparam=self.ordersing(price,sl,target,trail,qty,'SELL',0,data['symbol'].iloc[-1],data['token'].iloc[-1])
                 orderparam['updated_atdiff']=data['updated_at'].iloc[-1].minute-data['updated_at'].iloc[-2].minute
 
                 self.utilityobj.processorder(orderparam,backtest=backtest)
@@ -189,10 +190,3 @@ class strategy:
             print(e)
             return False
 
-
-
-
-# if __name__== "__main__":
-#     obj = strategy()
-#     # obj.main()
-#     logger.debug("%s")

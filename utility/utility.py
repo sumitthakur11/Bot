@@ -25,7 +25,7 @@ class misc:
         orderdata= [['',datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata')),'','','','','',False,0.0,0,0.0,'',0.0,False,False,False,datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata')),0.0,0.0,0.0,False,'','','',0.0,False]]
 
         self.orderdata = pd.DataFrame(orderdata,columns=['AccountNo','Entrytime','Broker','Side','Buyorderid','Symbol','Token','Status','Ltp','Qty','AveragePrice','Sellorderid','Sellprice','TargetHit','Slhit','Tslhit','Exittime','Target','Trail','Sl','Backtest','Transactiontype','Order_type','Exchange','Pnl','Tslactive'],dtype='object')
-        self.account = pd.DataFrame(columns=['AccountNo','Apikey','Secret','Password','Token'],dtype='object')
+        self.account = pd.DataFrame(columns=['AccountNo','Apikey','Secret','Password','Token','Lot','Broker'],dtype='object')
        
         
 
@@ -136,7 +136,7 @@ class misc:
     def orderobject(self,newdata='',newdataflag=False):
         try:
             file=None
-            print(newdata,newdataflag,'new data')
+            # print(newdata,newdataflag,'new data')
 
             orderpath= "data/liveorderdata/orderdata.json"
             orderpath= os.path.join(path,orderpath)
@@ -209,7 +209,7 @@ class misc:
 
                                         
                             
-                            elif (orderobjTrue['Slhit'].iloc[i] or orderobjTrue['Tslhit'].iloc[i]) and  orderobjTrue['Backtest'].iloc[i]  :
+                            elif (orderobjTrue['Slhit'].iloc[i] or orderobjTrue['Tslhit'].iloc[i] or orderobjTrue['TargetHit'].iloc[i] ) and  orderobjTrue['Backtest'].iloc[i]  :
                                     logger.info('Check order close')
                                     print('buffer',orderobjTrue['Slhit'].iloc[i],orderobjTrue['TargetHit'].iloc[i],orderobjTrue['Tslhit'].iloc[i])
                                     orderobj.loc[ind,'Status']=False
@@ -258,9 +258,10 @@ class misc:
                 else :
                     brokerlist= self.fetchaccounts()
 
-
                     for i in range(len(brokerlist)):
                         orderobj=orderobj[orderobj['Accountno']==brokerlist['AccountNo'].iloc[i]]
+                        orderparams['quantity']= int(brokerlist['Lot'])*int(orderparams['quantity'])
+
                         if not orderobj['Status'].any():
                             apikey= brokerlist['Apikey'].iloc[i]
                             username= brokerlist['AccountNo'].iloc[i]
@@ -359,7 +360,7 @@ class misc:
         data['side']= data['side'].astype('object')   
         data['sellprice']= data['sellprice'].astype('float')
         data['averageprice']= data['averageprice'].astype('float') 
-        data['pnl']= data['averageprice'].astype('float')   
+        data['Pnl']= data['Pnl'].astype('float')   
         
         for i in range(len(data)):
 
@@ -379,46 +380,60 @@ class misc:
             
 
             if averageprice:
+                buyactive= data['high'].iloc[i]*(1+settings['trail_offset_pct'])
+                tslbuyactive=data['high'].iloc[i]>buyactive
                 prevtrailbuy = data['high'].iloc[i]*settings['trail_offset_pct']
                 targetprbuy=averageprice*(1+settings['tp_pct'])
                 targetbuy = data['high'].iloc[i]>targetprbuy
                 stoplossbuy = data['low'].iloc[i]<averageprice*(1-settings['sl_pct'])
 
 
-            if targetbuy:
-                if (data['high'].iloc[i]<targetprbuy+prevtrailbuy  and targetbuy) :
+            if tslbuyactive:
+                if (data['high'].iloc[i]<buyactive+prevtrailbuy) :
                      data.loc[i,'exit']= True
                      data.loc[i,'sellprice']= data['high'].iloc[i]
 
-                     data.loc[i,'pnl']=float( data['high'].iloc[i])-averageprice
+                     data.loc[i,'Pnl']=float( data['high'].iloc[i])-averageprice
                      targetprbuy=False
                      stoplossbuy=False
                      averageprice=0
             elif stoplossbuy:
                     data.loc[i,'exit']= True
                     data.loc[i,'sellprice']= data['low'].iloc[i]
-                    data.loc[i,'pnl']=float( data['low'].iloc[i])-averageprice
+                    data.loc[i,'Pnl']=float( data['low'].iloc[i])-averageprice
+                    targetprbuy=False
+                    stoplossbuy=False
+                    averageprice=0
+            elif targetbuy:
+                    data.loc[i,'exit']= True
+                    data.loc[i,'sellprice']= data['high'].iloc[i]
+                    data.loc[i,'Pnl']=float( data['high'].iloc[i])-averageprice
                     targetprbuy=False
                     stoplossbuy=False
                     averageprice=0
 
                  
 
+                 
+
 
             if averagesellprice:
+                sellactive= data['low'].iloc[i]*(1-settings['trail_offset_pct'])
+                tslsellactive=data['low'].iloc[i]<sellactive
+
                  
                 stoplossell = data['high'].iloc[i]>averagesellprice*(1+settings['sl_pct'])
                 prevtrailsell = data['low'].iloc[i]*settings['trail_offset_pct']
                 targetprsell=averagesellprice*(1-settings['tp_pct'])
                 targetsell = data['low'].iloc[i]<targetprsell
             
-            if targetsell:
+            if tslsellactive:
                  
-                if (data['low'].iloc[i]>targetprsell-prevtrailsell  and targetsell) :
+                if (data['low'].iloc[i]>sellactive-prevtrailsell ) :
                         data.loc[i,'exit']= True
                         data.loc[i,'sellprice']= data['low'].iloc[i]
 
-                        data.loc[i,'pnl']= averagesellprice-data['low'].iloc[i]
+                        data.loc[i,'Pnl']= averagesellprice-data['low'].iloc[i]
                         targetsell= False
                         stoplossell= False
                         averagesellprice=0
@@ -427,12 +442,20 @@ class misc:
                     data.loc[i,'exit']= True
                     data.loc[i,'sellprice']= data['high'].iloc[i]
 
-                    data.loc[i,'pnl']= averagesellprice-data['high'].iloc[i]
+                    data.loc[i,'Pnl']= averagesellprice-data['high'].iloc[i]
                     targetsell= False
                     stoplossell= False
                     averagesellprice=0
+            if targetsell:
+                data.loc[i,'exit']= True
+                data.loc[i,'sellprice']= data['low'].iloc[i]
+                data.loc[i,'Pnl']= averagesellprice-data['low'].iloc[i]
+                targetsell= False
+                stoplossell= False
+                    
                  
-
+                 
+            
         return data
                  
 
@@ -485,27 +508,35 @@ class misc:
                                 orderobj.loc[ind,'TargetHit']=True
 
                         
-                        if (ltp<orderobjTrue['AveragePrice'].iloc[i]*(1-settings['trail_stop_pct'])) and (orderobjTrue['Side'].iloc[i]=='LONG'):
+                        if (ltp<orderobjTrue['AveragePrice'].iloc[i]*(1-settings['sl_pct'])) and (orderobjTrue['Side'].iloc[i]=='LONG'):
                                 orderobj.loc[ind,'Slhit']=True
 
                         
-                        elif (ltp>orderobjTrue['AveragePrice'].iloc[i]*(1+settings['trail_stop_pct'])) and (orderobjTrue['Side'].iloc[i]=='SHORT'):
+                        elif (ltp>orderobjTrue['AveragePrice'].iloc[i]*(1+settings['sl_pct'])) and (orderobjTrue['Side'].iloc[i]=='SHORT'):
                                 orderobj.loc[ind,'Slhit']=True
 
                         prevtrailbuy = ltp*settings['trail_offset_pct']
                         prevtrailsell = ltp*settings['trail_offset_pct']
-                        targetprbuy=orderobjTrue['AveragePrice'].iloc[i]*(1+settings['tp_pct'])
-                        targetprsell=orderobjTrue['AveragePrice'].iloc[i]*(1-settings['tp_pct'])
+                        targetprbuy= orderobjTrue['AveragePrice'].iloc[i]*(1+settings['trail_stop_pct'])
+                        targetprsell= orderobjTrue['AveragePrice'].iloc[i]*(1-settings['trail_stop_pct'])
+                        TRAILbuyactive = ltp>targetprbuy
+                        TRAILsellactive = ltp<targetprsell
+
+
+
                                       
-                        if (ltp<targetprbuy+prevtrailbuy) and (orderobjTrue['Side'].iloc[i]=='LONG') and orderobjTrue['TargetHit'].iloc[i]:
+                        if (ltp<targetprbuy+prevtrailbuy) and (orderobjTrue['Side'].iloc[i]=='LONG') and TRAILbuyactive:
                                 
                                 orderobj.loc[ind,'Tslhit']=True
                                 print(orderobj,'$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
                                 print(orderobj['AveragePrice'].iloc[i]*(1+settings['trail_offset_pct']))
-                        elif (ltp>targetprsell-prevtrailsell) and (orderobjTrue['Side'].iloc[i]=='SHORT') and orderobjTrue['TargetHit'].iloc[i] :
+                        elif (ltp>targetprsell-prevtrailsell) and (orderobjTrue['Side'].iloc[i]=='SHORT') and TRAILsellactive :
                                 orderobj.loc[ind,'Tslhit']=True
+                        
+                
 
-                    
+
+
 
                         
                         self.orderobject(newdata=orderobj,newdataflag=True)

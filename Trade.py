@@ -11,7 +11,7 @@ def mainfunc(symbol):
         settings= misc.loadsettings()
         tmf= settings['strategy']['tmf']
         data =misc.getmergedata(symbol)
-        data= misc.buildcandels(data,tmf,True)
+        data= misc.buildcandels(data,tmf,False)
         stat=bb.strategy()
         stat.main(data,False)
 
@@ -25,9 +25,9 @@ def mainfunc(symbol):
 if __name__=='__main__':
     threadlsit= {}
     symbols = misc.getsymbols()
-    for symbol in   symbols['symbol'] :
+
+    for symbol in   symbols['tradingsymbol'] :
         threadlsit[symbol]= threading.Thread(target=mainfunc,args=(symbol,))
-        threadlsit[symbol].start()
         threadlsit[symbol].start()
         threadlsit[symbol].join()
         

@@ -105,7 +105,11 @@ def defaultset():
             print(f"- Path to change default settings and add Broker configuration to get Ltp feeds  {configpath}")
         if not os.path.exists(symbolpath):
                 symbol= dict()
-                symbol['symbol']='NIFTY50','FINNIFTY'
+                symbol['symbol']='NIFTY','FINNIFTY'
+                symbol['tradingsymbol']='NIFTY'
+                symbol['backtestsymbol']='NIFTY'
+
+
                 obj1= open(symbolpath,'w')
                 obj1= json.dump(symbol,obj1,indent=6)
 
