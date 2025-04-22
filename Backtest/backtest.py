@@ -42,6 +42,7 @@ def scheduelbacktest():
                 datadict['Close']= data['close'].iloc[j]
                 datadict['OI']= data['OI'].iloc[j]
                 datadict['Volume']= data['volume'].iloc[j]
+                print(datadict['Close'])
                 datalist.append(datadict)
                 datafin= pd.DataFrame(datalist)
                 datafin= misc.buildcandels(datafin,'5min',True)
@@ -98,6 +99,7 @@ def generatereport():
     orderdata =misc.orderobject()
     date= int(time.time()*1000)
     reportpath= os.path.join(path,f'Backtestresult/{date}.csv')
+    orderdata= orderdata['']
     orderdata['CumulativePnL'] = orderdata['Pnl'].cumsum()
     orderdata['RunningMax'] = orderdata['CumulativePnL'].cummax()
     orderdata['Drawdown'] = orderdata['CumulativePnL'] - orderdata['RunningMax']
@@ -106,7 +108,8 @@ def generatereport():
     logger.info('Backtest Report Generated Sucessfully')
 
     return generatereport
-
+symboldata=Angelsdk.searchscrip(instrumentT='FUTSTK')
+print(symboldata.head())
 def exitbackest():
     symbollist=misc.getsymbols()
 
@@ -114,10 +117,6 @@ def exitbackest():
         logger.info(f"backtest starts for symbol:{i}")
         data = misc.getdata(i,test=True)
         data= misc.buildcandels(data,'1min',True)
-        print(data['updated_at'])
-        print(data.head())
-        print(type(data.index))
-        print(data.index)
         start_time = pd.Timestamp('09:15').time()
         end_time = pd.Timestamp('15:25').time()
         data = data[(data['updated_at'].dt.time >= start_time) & (data['updated_at'].dt.time <= end_time)]
@@ -128,17 +127,27 @@ def exitbackest():
         data['averageprice']= 0
         data['entry']= False
         data['side']= ''
-        data['exit']= False
+        data['exit']= False 
         data['sellprice']= 0
         data['Pnl']=0
         data =misc.checkpnlbox1(data)
-        data['CumulativePnL'] = data['Pnl'].cumsum()
-        data['RunningMax'] = data['CumulativePnL'].cummax()
-        data['Drawdown'] = data['CumulativePnL'] - data['RunningMax']
-            
+        tokenc= symboldata[symboldata['name']==i]
+        lot= tokenc['lotsize'].iloc[-1]
+        data['lotsize']=lot
+        data['drawdown']=data['drawdown']*int(lot)
+        data['Pnl']=data['Pnl']*int(lot)
+        data['Netpnl']=data['Pnl']- data['Commision']
+        databuy= data[data['entry']==True]
+        datasell= data[data['exit']==True]
+        databuy= databuy[['updated_at','open','high','low','close','entry','averageprice','side']]
+        datasell= datasell[['updated_at','open','high','low','close','exit','sellprice','Pnl','Commision','drawdown','Netpnl']]
+        databuy = databuy.reset_index()
+        datasell = datasell.reset_index()
+        datafin= pd.concat([databuy,datasell],axis=1)
         date= int(time.time()*1000)
-    reportpath= os.path.join(path,f'Backtestresult/fast{date}.csv')
-    data.to_csv(reportpath)
+    reportpath1= os.path.join(path,f'Backtestresult/fast1{date}.csv')
+    datafin.to_csv(reportpath1)
+
 
     return data
 
@@ -153,6 +162,6 @@ def exitbackest():
 
 if __name__ =="__main__":
     data =exitbackest()
-    scheduelbacktest()
+    # scheduelbacktest()
 
     
