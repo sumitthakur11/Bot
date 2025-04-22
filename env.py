@@ -14,6 +14,9 @@ try :
     
     else:
         currenenv= Path(__file__).resolve().parent.parent
+        os.environ['PYTHONPATH']=currenenv
+
+
     
     sys.stdout.write(f'****BaseDir: {currenenv}****\n\n')
     sys.stdout.write(f'****Checking Network Connection*******\n\n')
@@ -157,7 +160,7 @@ def defaultcsv():
     accountpath= os.path.normpath(accountpath)
     
     if not os.path.exists(accountpath):
-        account = pd.DataFrame(columns=['AccountNo','Apikey','Secret','Password','Token'],dtype='object')
+        account = pd.DataFrame(columns=['AccountNo','Apikey','Secret','Password','Token','Lot','Broker'],dtype='object')
         account.to_csv(accountpath)
         print("- creating account csv. Please add your Angel account in requied format")
         print("- Kindly Do Not Change The foramts of any files")

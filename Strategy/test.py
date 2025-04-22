@@ -43,24 +43,23 @@ def tesbb(data):
         logger.info('test end')
     except Exception as e:
         logger.error(e,exc_info=True)
-def testorder():
+def testorder(backtest):
     obj= utility.misc()
     orderparam= dict()
 
-    orderparam['symboltoken']=26000
-    orderparam['exchange']='NSE'
+    orderparam['symboltoken']='54452'
+    orderparam['exchange']='NFO'
     orderparam['transactiontype']='BUY'
-    orderparam['product_type']='MIS'
-    orderparam['quantity']=1
-    orderparam['order_type']='MKT'
-    orderparam['price']=22000   
+    orderparam['product_type']='INTRADAY'
+    orderparam['order_type']='MARKET'
+    orderparam['price']=0
     orderparam['sl']=10
     orderparam['target']=10
     orderparam['trail']=10
     orderparam['Amount']=0
     orderparam['quantity']=75
-    orderparam['ltp']=22900
-    orderparam['tradingsymbol']='NIFTY50'
+    orderparam['ltp']=24200
+    orderparam['tradingsymbol']='NIFTY24APR25FUT'
     orderparam['Side']='Long'
     orderparam['updated_atdiff']=1
     orderparam['TargetHit']=False
@@ -71,7 +70,7 @@ def testorder():
 
 
 
-    order= obj.processorder(orderparam)
+    order= obj.processorder(orderparam,backtest=backtest)
     
 def testmerge():
     data=utilis.mergebacktest()
@@ -102,5 +101,6 @@ import datetime
 date= datetime.datetime.today()
 print(f"{date.year}-{date.month}")
 
-symboldata=angel.searchscrip(instrument='FUTIDXS')
-print(symboldata)
+# symboldata=angel.searchscrip(instrument='FUTIDXS')
+# print(symboldata)
+testorder(False)

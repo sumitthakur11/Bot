@@ -9,7 +9,7 @@ import time as ts
 import pytz
 import datetime
 import numpy as np
-
+import time
 # path= os.getcwd()
 path = env.currenenv
 logpath= os.path.join(path,'Botlogs/utility.logs')
@@ -93,7 +93,11 @@ class misc:
                  return data
             else:
                  filepath= os.path.join(path,f"data/testdata/{symbol}.csv")
-                 
+           
+            if  not os.path.exists(filepath):
+                    df=self.mergebacktest()
+                    time.sleep(1)
+
                  
 
             filepath= os.path.normpath(filepath)
@@ -189,16 +193,16 @@ class misc:
                                     brokeri = Angel.HTTP(1,apikey,username,pws,token) 
                                     orderparam= dict()
                                     
-                                    orderparam['Token']=26009
-                                    orderparam['exchange']='NSE'
-                                    orderparam['Transactiontype']='SELL' if orderobjTrue['Transactiontype']=='BUY' else 'BUY'
-                                    orderparam['product_type']='MIS'
-                                    orderparam['ordertype']='MIS'
-                                    orderparam['price']=orderobj['Ltp'].iloc[i]
-                                    orderparam['quantity']=orderobj['Qty'].iloc[i]
-                                    orderparam['Symbol']=orderobj['Symbol'].iloc[i]
-
-                                    orderid=brokeri.closetrade(orderparam,orderobj['Backtest'].iloc[i])
+                                    orderparam['Token']= orderobjTrue['Token'].iloc[i]
+                                    orderparam['exchange']=orderobjTrue['Exchange'].iloc[i]
+                                    orderparam['Transactiontype']='SELL' if orderobjTrue['Transactiontype'].iloc[i]=='BUY' else 'BUY'
+                                    orderparam['product_type']='INTRADAY'
+                                    orderparam['order_type']='MARKET'
+                                    orderparam['price']=orderobjTrue['Ltp'].iloc[i]
+                                    orderparam['quantity']=orderobjTrue['Qty'].iloc[i]
+                                    orderparam['Symbol']=orderobjTrue['Symbol'].iloc[i]
+                                    
+                                    orderid=brokeri.closetrade(orderparam,orderobjTrue['Backtest'].iloc[i])
                                     if orderid:
                                         orderobj.loc[ind,'Status']=False
                                         orderobj.loc[ind,'Exittime']=datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata'))
@@ -257,10 +261,11 @@ class misc:
                 
                 else :
                     brokerlist= self.fetchaccounts()
+                    print(brokerlist)
 
                     for i in range(len(brokerlist)):
-                        orderobj=orderobj[orderobj['Accountno']==brokerlist['AccountNo'].iloc[i]]
-                        orderparams['quantity']= int(brokerlist['Lot'])*int(orderparams['quantity'])
+                        orderobj=orderobj[orderobj['AccountNo']==brokerlist['AccountNo'].iloc[i]]
+                        orderparams['quantity']= int(brokerlist['Lot'].iloc[-1])*int(orderparams['quantity'])
 
                         if not orderobj['Status'].any():
                             apikey= brokerlist['Apikey'].iloc[i]
@@ -353,6 +358,9 @@ class misc:
         averagesellprice=0
         targetsell=0
         targetbuy=0
+        tslbuyactive=0
+        tslsellactive=0
+        
         stoplossbuy=stoplossell=False
         data['high']= data['high'].astype('float')      
         data['exit']= data['exit'].astype('object')   
@@ -389,7 +397,7 @@ class misc:
 
 
             if tslbuyactive:
-                if (data['high'].iloc[i]<buyactive+prevtrailbuy) :
+                if (data['high'].iloc[i]<buyactive+prevtrailbuy) and tslbuyactive :
                      data.loc[i,'exit']= True
                      data.loc[i,'sellprice']= data['high'].iloc[i]
 
@@ -397,6 +405,8 @@ class misc:
                      targetprbuy=False
                      stoplossbuy=False
                      averageprice=0
+                     tslbuyactive=0
+                     targetbuy=0
             elif stoplossbuy:
                     data.loc[i,'exit']= True
                     data.loc[i,'sellprice']= data['low'].iloc[i]
@@ -404,6 +414,8 @@ class misc:
                     targetprbuy=False
                     stoplossbuy=False
                     averageprice=0
+                    tslbuyactive=0
+                    targetbuy=0
             elif targetbuy:
                     data.loc[i,'exit']= True
                     data.loc[i,'sellprice']= data['high'].iloc[i]
@@ -411,7 +423,9 @@ class misc:
                     targetprbuy=False
                     stoplossbuy=False
                     averageprice=0
-
+                    tslbuyactive=0
+                    targetbuy=0
+                    
                  
 
                  
@@ -429,7 +443,7 @@ class misc:
             
             if tslsellactive:
                  
-                if (data['low'].iloc[i]>sellactive-prevtrailsell ) :
+                if (data['low'].iloc[i]>sellactive-prevtrailsell ) and tslsellactive :
                         data.loc[i,'exit']= True
                         data.loc[i,'sellprice']= data['low'].iloc[i]
 
@@ -437,6 +451,8 @@ class misc:
                         targetsell= False
                         stoplossell= False
                         averagesellprice=0
+                        tslsellactive=0
+
 
             if stoplossell:
                     data.loc[i,'exit']= True
@@ -446,12 +462,16 @@ class misc:
                     targetsell= False
                     stoplossell= False
                     averagesellprice=0
+                    tslsellactive=0
             if targetsell:
                 data.loc[i,'exit']= True
                 data.loc[i,'sellprice']= data['low'].iloc[i]
                 data.loc[i,'Pnl']= averagesellprice-data['low'].iloc[i]
                 targetsell= False
                 stoplossell= False
+                averagesellprice=0
+                tslsellactive=0
+
                     
                  
                  

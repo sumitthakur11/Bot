@@ -281,7 +281,8 @@ class HTTP(SMARTAPI):
         super().__init__(self,api_key , username ,pwd,token)
         self.user=user
         self.smartApi=self.client_()
-        print(api_key , username ,pwd)
+        
+        
     
     
 
@@ -462,8 +463,11 @@ class HTTP(SMARTAPI):
             "squareoff": "0",
             "stoploss": "0",
             "quantity": quantity}
+            print(orderparams)
             if not PAPER:
+                print('placing order')
                 orderid = self.smartApi.placeOrder(orderparams)
+                print(orderid)
                 orderupdate.loc[lastindex,'Buyorderid']=orderid
                 orderupdate.loc[lastindex,'Backtest']=False
 

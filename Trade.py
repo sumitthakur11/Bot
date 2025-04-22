@@ -9,7 +9,7 @@ misc=utility.misc()
 def mainfunc(symbol):
     while True:
         settings= misc.loadsettings()
-        tmf= settings['strategy']['tmf']
+        tmf= settings['tmf']
         data =misc.getmergedata(symbol)
         data= misc.buildcandels(data,tmf,False)
         stat=bb.strategy()

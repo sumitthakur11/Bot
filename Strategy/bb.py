@@ -127,8 +127,8 @@ class strategy:
         orderparam['symboltoken']=symboltoken
         orderparam['exchange']="NFO"
         orderparam['transactiontype']=side
-        orderparam['product_type']='MIS'
-        orderparam['order_type']='MKT'
+        orderparam['product_type']='INTRADAY'
+        orderparam['order_type']='MARKET'
         orderparam['price']= price
         orderparam['sl']=sl
         orderparam['target']=target

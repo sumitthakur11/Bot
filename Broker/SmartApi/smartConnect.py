@@ -205,7 +205,7 @@ class SmartConnect(object):
 
         if self.debug:
             log.debug("Request: {method} {url} {params} {headers}".format(method=method, url=url, params=params, headers=headers))
-    
+        print("Request: {method} {url} {params} {headers}".format(method=method, url=url, params=params, headers=headers))
         try:
             r = requests.request(method,
                                         url,
@@ -216,6 +216,7 @@ class SmartConnect(object):
                                         allow_redirects=True,
                                         timeout=self.timeout,
                                         proxies=self.proxies)
+            print(r.text)
            
         except Exception as e:
             logger.error(f"Error occurred while making a {method} request to {url}. Headers: {headers}, Request: {params}, Response: {e}")
