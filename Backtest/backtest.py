@@ -105,7 +105,6 @@ def generatereport():
     orderdata =misc.orderobject()
     date= int(time.time()*1000)
     reportpath= os.path.join(path,f'Backtestresult/{date}.csv')
-    orderdata= orderdata['']
     orderdata['CumulativePnL'] = orderdata['Pnl'].cumsum()
     orderdata['RunningMax'] = orderdata['CumulativePnL'].cummax()
     orderdata['Drawdown'] = orderdata['CumulativePnL'] - orderdata['RunningMax']
