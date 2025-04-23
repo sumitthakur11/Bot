@@ -31,11 +31,17 @@ def scheduelbacktest():
         login= Angelsdk.SMARTAPI(1)
         login.smartAPI_Login()
         for i in symbollist['backtestsymbol']:
+            tokenc= symboldata[symboldata['name']==i]
+            symbol= tokenc['symbol'].iloc[0]
+            token= symboldata['token'].iloc[0]
+            lot= str(tokenc['lotsize'].iloc[0])
+
             logger.info(f"backtest starts for symbol:{i}")
             data = misc.getdata(i,test=True)
-            print(len(data))
+            data['lotsize']=lot
+            data['symbol']=symbol
+            data['token']=token
             data= misc.buildcandels(data,'1min',True)
-            print(len(data))
             for j in range(len(data)):
                 datadict={}
                 datadict['updated_at']= data['updated_at'].iloc[j]
@@ -108,7 +114,7 @@ def generatereport():
     logger.info('Backtest Report Generated Sucessfully')
 
     return generatereport
-symboldata=Angelsdk.searchscrip(instrumentT='FUTSTK')
+symboldata=Angelsdk.searchscrip(instrumentT='NFO')
 print(symboldata.head())
 
 def exitbackest():
@@ -172,6 +178,6 @@ def exitbackest():
 
 if __name__ =="__main__":
     data =exitbackest()
-    # scheduelbacktest()
+    scheduelbacktest()
 
     
