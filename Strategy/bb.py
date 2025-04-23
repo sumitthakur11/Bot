@@ -25,8 +25,8 @@ class strategy:
         try:
 
             data['basis']= data['close'].rolling(period).mean()
-            data['stddata']= data['close'].rolling(stdperiod).std()
-            data['dev'] = mult*data['stddata']
+            data['stddata']= data['close'].rolling(period).std()
+            data['dev'] = stdperiod*data['stddata']
             data['upper']=data['basis']+data['dev']
             data['lower']=data['basis']-data['dev']
             data['buy_final']= False
@@ -40,8 +40,7 @@ class strategy:
         
         except Exception as e:
             logger.error(e,exc_info=True)
-
-        
+    
     def crossover(self,data):
         try:
         

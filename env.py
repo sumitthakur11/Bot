@@ -153,7 +153,7 @@ def defaultcsv():
     orderpath= os.path.normpath(orderpath)
 
     if not os.path.exists(orderpath):
-        orderdata = pd.DataFrame(columns=['AccountNo','Entrytime','Broker','Side','Buyorderid','Symbol','Token','Status','Ltp','Qty','AveragePrice','Sellorderid','Sellprice','TargetHit','Slhit','Tslhit','Exittime','Target','Trail','Sl','Backtest','Transactiontype','Order_type','Exchange','Pnl'],dtype='object')
+        orderdata = pd.DataFrame(columns=['AccountNo','Entrytime','Broker','Side','Buyorderid','Symbol','Token','Status','Ltp','Qty','AveragePrice','Sellorderid','Sellprice','TargetHit','Slhit','Tslhit','Exittime','Target','Trail','Sl','Backtest','Transactiontype','Order_type','Exchange','Pnl','Commision','Netpnl'],dtype='object')
         orderdata.to_csv(orderpath)
     accountpath= f"config/account.csv"
     accountpath= os.path.join(currenenv,accountpath)

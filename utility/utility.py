@@ -22,9 +22,9 @@ print(logpath,'logpath')
 logger=env.setup_logger(logpath)
 class misc:
     def __init__(self):
-        orderdata= [['',datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata')),'','','','','',False,0.0,0,0.0,'',0.0,False,False,False,datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata')),0.0,0.0,0.0,False,'','','',0.0,False]]
+        orderdata= [['',datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata')),'','','','','',False,0.0,0,0.0,'',0.0,False,False,False,datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata')),0.0,0.0,0.0,False,'','','',0.0,0.0,0.0]]
 
-        self.orderdata = pd.DataFrame(orderdata,columns=['AccountNo','Entrytime','Broker','Side','Buyorderid','Symbol','Token','Status','Ltp','Qty','AveragePrice','Sellorderid','Sellprice','TargetHit','Slhit','Tslhit','Exittime','Target','Trail','Sl','Backtest','Transactiontype','Order_type','Exchange','Pnl','Tslactive'],dtype='object')
+        self.orderdata = pd.DataFrame(orderdata,columns=['AccountNo','Entrytime','Broker','Side','Buyorderid','Symbol','Token','Status','Ltp','Qty','AveragePrice','Sellorderid','Sellprice','TargetHit','Slhit','Tslhit','Exittime','Target','Trail','Sl','Backtest','Transactiontype','Order_type','Exchange','Pnl','Netpnl','Commision'],dtype='object')
         self.account = pd.DataFrame(columns=['AccountNo','Apikey','Secret','Password','Token','Lot','Broker'],dtype='object')
        
         
@@ -95,7 +95,8 @@ class misc:
                  filepath= os.path.join(path,f"data/testdata/{symbol}.csv")
            
             if  not os.path.exists(filepath):
-                    df=self.mergebacktest()
+                    symbol=symbol+"_I"
+                    df=self.mergebacktest(symbol)
                     time.sleep(1)
 
                  
@@ -137,12 +138,15 @@ class misc:
              
          
 
-    def orderobject(self,newdata='',newdataflag=False):
+    def orderobject(self,newdata='',newdataflag=False,backtest=False):
         try:
             file=None
-            # print(newdata,newdataflag,'new data')
-
-            orderpath= "data/liveorderdata/orderdata.json"
+            if not backtest:
+                 orderpath= "data/liveorderdata/orderdata.json"
+            else:
+                 orderpath= "data/liveorderdata/backorderdata.json"
+                 
+                 
             orderpath= os.path.join(path,orderpath)
             if not os.path.exists(orderpath):
 
@@ -167,6 +171,8 @@ class misc:
     def uniqueno(self):
         return int(ts.time()*1000)
 
+    
+    
     def closeorder(self):
         try :
 
@@ -209,6 +215,8 @@ class misc:
                                         orderobj.loc[ind,'Sellorderid']=orderid
                                         orderobj.loc[ind,'Sellprice']=orderobjTrue['Ltp'].iloc[i]
                                         orderobj.loc[ind,'Pnl']=float(orderobjTrue['AveragePrice'].iloc[i]-orderobjTrue['Ltp'].iloc[i])*orderobjTrue['Qty'].iloc[i]
+                                        # orderobj.loc[i,'Netpnl']=float( orderobjTrue['Pnl'].iloc[i])-float( orderobjTrue['Commision'].iloc[i])
+
                                         self.orderobject(newdata=orderobj,newdataflag=True)
 
                                         
@@ -221,6 +229,8 @@ class misc:
                                     orderobj.loc[ind,'Sellorderid']=self.uniqueno()
                                     orderobj.loc[ind,'Sellprice']=orderobjTrue['Ltp'].iloc[i]
                                     orderobj.loc[ind,'Pnl']=float(orderobjTrue['Ltp'].iloc[i]-orderobjTrue['AveragePrice'].iloc[i])*orderobjTrue['Qty'].iloc[i]
+                                    # orderobj.loc[i,'Netpnl']=float( orderobjTrue['Pnl'].iloc[i])-float( orderobjTrue['Commision'].iloc[i])
+
                                     self.orderobject(newdata=orderobj,newdataflag=True)
 
 
@@ -318,25 +328,25 @@ class misc:
         except Exception as e :
             logger.error(e,exc_info=True)
             
-    def mergebacktest(self):
-        datapath= "Bot/data/ZohoWorkDrive/10-2024/10-2024/NIFTY_I.csv"
+    def mergebacktest(self,sym):
+        datapath= f"Bot/data/ZohoWorkDrive/10-2024/10-2024/{sym}.csv"
         datapath= os.path.join(path,datapath)
         datapath= os.path.normpath(datapath)
 
         df1= pd.read_csv(datapath)
-        datapath= "Bot/data/ZohoWorkDrive/11-2024/11-2024/NIFTY_I.csv"
+        datapath= f"Bot/data/ZohoWorkDrive/11-2024/11-2024/{sym}.csv"
         datapath= os.path.join(path,datapath)
         datapath= os.path.normpath(datapath)
 
         df2= pd.read_csv(datapath)
 
-        datapath= "Bot/data/ZohoWorkDrive/12-2024/12-2024/NIFTY_I.csv"
+        datapath= f"Bot/data/ZohoWorkDrive/12-2024/12-2024/{sym}.csv"
         datapath= os.path.join(path,datapath)
         datapath= os.path.normpath(datapath)
 
         df3= pd.read_csv(datapath)
 
-        datapath= "Bot/data/ZohoWorkDrive/01-2025/01-2025/NIFTY_I.csv"
+        datapath= f"Bot/data/ZohoWorkDrive/01-2025/01-2025/{sym}.csv"
         datapath= os.path.join(path,datapath)
         datapath= os.path.normpath(datapath)
 
@@ -346,11 +356,15 @@ class misc:
         dffinal['updated_at']= pd.to_datetime(dffinal['Date'],format='%Y%m%d')
         dffinal['updated_at']=dffinal['updated_at']+pd.to_timedelta(dffinal['Time'])
         dffinal['updated_at'] = dffinal['updated_at'].dt.tz_localize('Asia/Kolkata')
-        csvpath = os.path.join(path,'data/testdata/NIFTY.csv')
+        symbol = sym.split('_')[0]
+        csvpath = os.path.join(path,f'data/testdata/{symbol}.csv')
         csvpath=os.path.normpath(csvpath)
         dffinal.to_csv(csvpath)
 
         return dffinal 
+    
+    
+    
     def checkpnlbox1(self,data):
         settings= self.loadsettings()
         averageprice=0
@@ -368,23 +382,65 @@ class misc:
         data['side']= data['side'].astype('object')   
         data['sellprice']= data['sellprice'].astype('float')
         data['averageprice']= data['averageprice'].astype('float') 
-        data['Pnl']= data['Pnl'].astype('float')   
+        data['Pnl']= data['Pnl'].astype('float')
+        data['Commision']= settings['commision']
+        data['Commision']= data['Commision'].astype('float')
+        data['drawdown']= 0
+        data['drawdown']= data['drawdown'].astype('float')
+
+
+
+        # data['Netpnl']= data['Netpnl'].astype('float')   
+
         
         for i in range(len(data)):
 
-            
-            if  data['buy_final'].iloc[i]  and  not averageprice:
+            maxhighprice = max(data['high'].iloc[i],data['high'].iloc[i-1])
+            minlowprice = min(data['low'].iloc[i],data['low'].iloc[i-1])
+
+            if  data['buy_final'].iloc[i]  and  not averageprice :
                 averageprice=data['close'].iloc[i]
                 data.loc[i,'averageprice']= float(averageprice)
 
                 data.loc[i,'entry']=True
                 data.loc[i,'side']='LONG'
+                if averagesellprice:
+                    data.loc[i,'exit']= True
+                    data.loc[i,'sellprice']= data['low'].iloc[i]
+                    data.loc[i,'Pnl']= averagesellprice-data['low'].iloc[i]
+                    data.loc[i,'drawdown']= float( data['low'].iloc[i])-float(minlowprice)
+                    targetsell= False
+                    stoplossell= False
+                    averagesellprice=0
+                    tslsellactive=0
+
+
+                targetsell= False
+                stoplossell= False
+                tslsellactive=0
+                averagesellprice=0
+
+                     
+
             elif  data['sell_final'].iloc[i] and not averagesellprice :
                 averagesellprice=data['close'].iloc[i]
                 data.loc[i,'averageprice']= averagesellprice
                 data.loc[i,'side']='SHORT'
-
                 data.loc[i,'entry']=True
+                if averageprice:
+                    data.loc[i,'exit']= True
+                    data.loc[i,'sellprice']= data['high'].iloc[i]
+                    data.loc[i,'Pnl']=float( data['high'].iloc[i])-averageprice
+                    data.loc[i,'drawdown']= float(maxhighprice)-float( data['high'].iloc[i])
+                    targetprbuy=False
+                    stoplossbuy=False
+                    averageprice=0
+                    tslbuyactive=0
+                    targetbuy=0
+
+                     
+            
+
             
 
             if averageprice:
@@ -396,12 +452,16 @@ class misc:
                 stoplossbuy = data['low'].iloc[i]<averageprice*(1-settings['sl_pct'])
 
 
+
             if tslbuyactive:
-                if (data['high'].iloc[i]<buyactive+prevtrailbuy) and tslbuyactive :
+                if (data['high'].iloc[i]<buyactive+prevtrailbuy) and tslbuyactive:
                      data.loc[i,'exit']= True
                      data.loc[i,'sellprice']= data['high'].iloc[i]
 
                      data.loc[i,'Pnl']=float( data['high'].iloc[i])-averageprice
+                     data.loc[i,'drawdown']= float(maxhighprice)-float( data['high'].iloc[i])
+                    #  data.loc[i,'Netpnl']=float( data['Pnl'].iloc[i])-float( data['Commision'].iloc[i])
+
                      targetprbuy=False
                      stoplossbuy=False
                      averageprice=0
@@ -411,21 +471,30 @@ class misc:
                     data.loc[i,'exit']= True
                     data.loc[i,'sellprice']= data['low'].iloc[i]
                     data.loc[i,'Pnl']=float( data['low'].iloc[i])-averageprice
-                    targetprbuy=False
-                    stoplossbuy=False
-                    averageprice=0
-                    tslbuyactive=0
-                    targetbuy=0
-            elif targetbuy:
-                    data.loc[i,'exit']= True
-                    data.loc[i,'sellprice']= data['high'].iloc[i]
-                    data.loc[i,'Pnl']=float( data['high'].iloc[i])-averageprice
+                    data.loc[i,'drawdown']= float(maxhighprice)-float( data['low'].iloc[i])
+
+                    # data.loc[i,'Netpnl']=float( data['Pnl'].iloc[i])-float( data['Commision'].iloc[i])
+
                     targetprbuy=False
                     stoplossbuy=False
                     averageprice=0
                     tslbuyactive=0
                     targetbuy=0
                     
+            elif targetbuy:
+                    data.loc[i,'exit']= True
+                    data.loc[i,'sellprice']= data['high'].iloc[i]
+                    data.loc[i,'Pnl']=float( data['high'].iloc[i])-averageprice
+                    data.loc[i,'drawdown']= float(maxhighprice)-float( data['high'].iloc[i])
+
+                    # data.loc[i,'Netpnl']=float( data['Pnl'].iloc[i])-float( data['Commision'].iloc[i])
+
+                    targetprbuy=False
+                    stoplossbuy=False
+                    averageprice=0
+                    tslbuyactive=0
+                    targetbuy=0
+
                  
 
                  
@@ -443,34 +512,48 @@ class misc:
             
             if tslsellactive:
                  
-                if (data['low'].iloc[i]>sellactive-prevtrailsell ) and tslsellactive :
+                if (data['low'].iloc[i]>sellactive-prevtrailsell ) and tslsellactive  :
                         data.loc[i,'exit']= True
                         data.loc[i,'sellprice']= data['low'].iloc[i]
 
                         data.loc[i,'Pnl']= averagesellprice-data['low'].iloc[i]
+                        data.loc[i,'drawdown']= float( data['low'].iloc[i])-float(minlowprice)
+
+                        # data.loc[i,'Netpnl']=float( data['Pnl'].iloc[i])-float( data['Commision'].iloc[i])
+
                         targetsell= False
                         stoplossell= False
                         averagesellprice=0
                         tslsellactive=0
-
 
             if stoplossell:
                     data.loc[i,'exit']= True
                     data.loc[i,'sellprice']= data['high'].iloc[i]
 
                     data.loc[i,'Pnl']= averagesellprice-data['high'].iloc[i]
+                    # data.loc[i,'Netpnl']=float( data['Pnl'].iloc[i])-float( data['Commision'].iloc[i])
+                    data.loc[i,'drawdown']= float( data['high'].iloc[i])-float(minlowprice)
+
+
                     targetsell= False
                     stoplossell= False
                     averagesellprice=0
                     tslsellactive=0
+
             if targetsell:
                 data.loc[i,'exit']= True
                 data.loc[i,'sellprice']= data['low'].iloc[i]
                 data.loc[i,'Pnl']= averagesellprice-data['low'].iloc[i]
+                # data.loc[i,'Netpnl']=float( data['Pnl'].iloc[i])-float( data['Commision'].iloc[i])
+                data.loc[i,'drawdown']= float( data['low'].iloc[i])-float(minlowprice)
+
+                
+
                 targetsell= False
                 stoplossell= False
-                averagesellprice=0
                 tslsellactive=0
+                averagesellprice=0
+
 
                     
                  
@@ -478,11 +561,7 @@ class misc:
             
         return data
                  
-
-            
-                     
-
-            
+        
 
             
 
@@ -497,7 +576,12 @@ class misc:
 
             orderobj['Slhit']= orderobj['Slhit'].astype('object')      
             orderobj['TargetHit']= orderobj['TargetHit'].astype('object')      
-            orderobj['Tslhit']= orderobj['Tslhit'].astype('object')      
+            orderobj['Tslhit']= orderobj['Tslhit'].astype('object') 
+            orderobj['Commision']= orderobj['Pnl'].astype('float')
+            orderobj['Commision']= settings['commision']
+            orderobj['Netpnl']= orderobj['Pnl'].astype('float')   
+
+
             if not orderobjTrue.empty:
                 for i in range(len(orderobjTrue)):
 
@@ -652,7 +736,10 @@ class misc:
         data = data.reset_index()
         return data
 
-    
+    def Angelcandels(self,exchange,symboltoken,interval):
+        angellogin= Angel.HTTP(1)
+        data = angellogin.candels(exchange,symboltoken,interval)
+        return data
 
 
     def buildcandels(self,data,timeframe_seconds=None,backtest=False):
@@ -674,6 +761,12 @@ class misc:
                 low_price = df['Close'].resample(timeframe_seconds).min()
                 close_price = df['Close'].resample(timeframe_seconds).last()
                 volume= df['Volume'].resample(timeframe_seconds).last()
+                
+                lotsize= df['lotsize'].resample(timeframe_seconds).last()
+                symbol= df['symbol'].resample(timeframe_seconds).last()
+                token= df['token'].resample(timeframe_seconds).last()
+
+
                 OI= df['OI'].resample(timeframe_seconds).last()
 
                 self.ohlc = pd.DataFrame({
@@ -682,7 +775,11 @@ class misc:
                     'low': low_price,
                     'close': close_price,
                     'volume':volume,
-                    'OI':OI
+                    'OI':OI,
+                    'lotsize':lotsize,
+                    'symbol':symbol,
+                    'token':token
+
                     
                 })
                 self.ohlc=self.ohlc.dropna()

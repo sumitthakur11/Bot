@@ -110,13 +110,26 @@ def generatereport():
     return generatereport
 symboldata=Angelsdk.searchscrip(instrumentT='FUTSTK')
 print(symboldata.head())
+
 def exitbackest():
     symbollist=misc.getsymbols()
 
     for i in symbollist['backtestsymbol']:
+        tokenc= symboldata[symboldata['name']==i]
+        symbol= tokenc['symbol'].iloc[0]
+        token= symboldata['token'].iloc[0]
+        lot= str(tokenc['lotsize'].iloc[0])
+        
+
+        # data =misc.Angelcandels('NFO',token,'FIVE_MINUTE')
         logger.info(f"backtest starts for symbol:{i}")
         data = misc.getdata(i,test=True)
+        data['lotsize']=lot
+        data['symbol']=symbol
+        data['token']=token
+
         data= misc.buildcandels(data,'1min',True)
+        print(data.head())
         start_time = pd.Timestamp('09:15').time()
         end_time = pd.Timestamp('15:25').time()
         data = data[(data['updated_at'].dt.time >= start_time) & (data['updated_at'].dt.time <= end_time)]
@@ -131,9 +144,6 @@ def exitbackest():
         data['sellprice']= 0
         data['Pnl']=0
         data =misc.checkpnlbox1(data)
-        tokenc= symboldata[symboldata['name']==i]
-        lot= tokenc['lotsize'].iloc[-1]
-        data['lotsize']=lot
         data['drawdown']=data['drawdown']*int(lot)
         data['Pnl']=data['Pnl']*int(lot)
         data['Netpnl']=data['Pnl']- data['Commision']

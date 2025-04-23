@@ -28,7 +28,7 @@ logpath= os.path.normpath(logpath)
 # logpath= os.path.join(logpath,'Angelbroker.logs')
 print(logpath,'logpath')
 logger=env.setup_logger(logpath)
-def searchscrip (Symbol='',exchange='NFO',instrument=''):
+def searchscrip (Symbol='',exchange='NFO',instrument='FUT',instrumentT='FUTIDX'):
         try:
 
             data = requests.get('https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json')
@@ -44,8 +44,8 @@ def searchscrip (Symbol='',exchange='NFO',instrument=''):
 
                 db =db[db['token']==Symbol] 
 
-            if instrument=='FUTIDXS':
-                db =db[db['instrumenttype']=='FUTIDX'] 
+            if instrument=='FUT':
+                db = db[db['instrumenttype'] == instrumentT]         
 
 
             elif instrument !='EQ':
@@ -65,7 +65,7 @@ def searchscrip (Symbol='',exchange='NFO',instrument=''):
 
 # RES= searchscrip('NIFTY',instrument='FUTIDX') 
 
-symboldata=searchscrip(instrument='FUTIDXS')
+symboldata=searchscrip(instrumentT='FUTIDXS')
 
 
 def preparetoken():
@@ -78,7 +78,7 @@ def preparetoken():
     tokens= []
     symbol = loaded_dict['symbol']
     for i in symbol:
-       data= searchscrip(i,instrument='FUTIDX')
+       data= searchscrip(i,instrumentT='FUTIDX')
        data= data.sort_values(by='expiry')
        
        tk= data['token'].iloc[0]
@@ -326,7 +326,7 @@ class HTTP(SMARTAPI):
     def candels(self,exchange,symboltoken,interval):
         print(exchange,symboltoken,interval)
         todate= datetime.datetime.today().astimezone(pytz.timezone('Asia/Kolkata'))
-        fromdate=todate- datetime.timedelta(days=100)
+        fromdate=todate- datetime.timedelta(days=99)
         todate= todate.strftime("%Y-%m-%d %H:%M")
         fromdate= fromdate.strftime("%Y-%m-%d %H:%M")
 
@@ -340,6 +340,7 @@ class HTTP(SMARTAPI):
         candledetails= self.smartApi.getCandleData(candleParams)
         columns= ['updated_at', 'open', 'high', 'low', 'Close', 'Volume']
         candledetails= pd.DataFrame(candledetails['data'],columns=columns)
+        print(candledetails)
         candledetails['OI']=0
 
         return candledetails
