@@ -1,4 +1,4 @@
-**Enter following commadn to configure the bot **
+**Enter following command to configure the bot **
 ```bash
 python -m venv Botfinal
 
