@@ -197,27 +197,28 @@ class misc:
             
             orderobj=self.orderobjectread()
            
-                
-                
-                 
-            if backtest  and (not  orderobj['Status'].any() ):
-                orderobj=orderobj[orderobj['Backtest']==True]
 
 
-                # broker= Angel.HTTP(1)
-                order_ids=ANGEL.placeorder(orderparams,self.orderobjectwrite,True)
-                return order_ids
+            if datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata'))> datetime.datetime.fromtimestamp(orderobj['Entrytime'].iloc[-1].timestamp()/1000,tz=pytz.timezone('Asia/Kolkata'))+datetime.timedelta(minutes=orderparams['updated_atdiff']):
+
+                if backtest  and (not  orderobj['Status'].any() ):
+                    orderobj=orderobj[orderobj['Backtest']==True]
+
+
+                    # broker= Angel.HTTP(1)
+                    order_ids=ANGEL.placeorder(orderparams,self.orderobjectwrite,True)
+                    return order_ids
 
 
 
 
-            elif (not backtest ) and (not  orderobj['Status'].any() or orderobj.empty ) and orderretry<retry:
-                orderobj=orderobj[orderobj['Backtest']==False]
-                orderretry=orderobj['retry'].iloc[-1]
-                order_ids=ANGEL.placeorder(orderparams,self.orderobjectwrite,False)
-                orderid.append(order_ids)
+                elif (not backtest ) and (not  orderobj['Status'].any() or orderobj.empty ) and orderretry<retry:
+                    orderobj=orderobj[orderobj['Backtest']==False]
+                    orderretry=orderobj['retry'].iloc[-1]
+                    order_ids=ANGEL.placeorder(orderparams,self.orderobjectwrite,False)
+                    orderid.append(order_ids)
 
-                return orderid
+                    return orderid
         except Exception as e:
             logger.error(e,exc_info=True)
             return str(e)
