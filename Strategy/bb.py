@@ -151,7 +151,7 @@ class strategy:
 
 
             
-            if (data['buy_final'].iloc[-1]) and (not data['buy_final'].iloc[-2] )  :
+            if (data['buy_final'].iloc[-1]) and (not data['buy_final'].iloc[-2] )  and data['updated_at'].iloc[-1]!=data['updated_at'].iloc[-2]: 
 
                 
                 orderparam=self.ordersing(price,sl,target,qty,'BUY',0,data['symbol'].iloc[-1],data['token'].iloc[-1])
@@ -162,7 +162,7 @@ class strategy:
             #     logger.info('sell order placed reason' + str(data[['updated_at','sell_final','sellconditions']].iloc[-2:]))
             #     orderparam=self.ordersing(price,sl,target,qty,'SELL',0,data['symbol'].iloc[-1],data['token'].iloc[-1])
             #     orderparam['updated_atdiff']=data['updated_at'].iloc[-1].minute-data['updated_at'].iloc[-2].minute
-                # self.utilityobj.closeorder(forceclose=True,ANGEL=ANGEL)
+            #     self.utilityobj.closeorder(forceclose=True,ANGEL=ANGEL)
 
             data.to_csv(f'data/{data["symbol"].iloc[-1]}.csv')
             
