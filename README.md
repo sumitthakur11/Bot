@@ -4,9 +4,10 @@ python -m venv Botfinal
 
 .\Botfinal\Scripts\activate
 
+cd Botfinal/Bot
 pip install -r requirements.txt
+cd ..
 
-cd Botfinal
 
 #add your configuration in config.json file
 
