@@ -14,7 +14,7 @@ print(logpath,'logpath')
 logger=env.setup_logger(logpath)
 retryno=0
 
-def startsocket(self):
+def startsocket():
     try :
         misc= utility.misc()
         misc.startwebsocket()

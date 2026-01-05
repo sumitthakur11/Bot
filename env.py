@@ -1,12 +1,16 @@
 import os 
 import sys
 from pathlib import Path
+import subprocess
+
+
 
 try :
-    
+
     if 'VIRTUAL_ENV'  in os.environ:
         abspaths=os.environ['VIRTUAL_ENV']
         currenenv= os.path.abspath(abspaths)
+
     elif 'PYTHONPATH' in os.environ:
         abspaths=os.environ['PYTHONPATH']
         abspaths= abspaths.split(':')[0]
@@ -14,7 +18,6 @@ try :
     
     else:
         currenenv= Path(__file__).resolve().parent.parent
-        os.environ['PYTHONPATH']=currenenv
 
 
     
@@ -23,6 +26,9 @@ try :
 
 
 
+
+
+    
 
 except Exception as e:
     print('>>>>>>>>>>>Looks like virtual enviroment is not activated/created.')
@@ -37,6 +43,7 @@ except Exception as e:
     print('Once the installation is complete, ensure the packages are installed by running: pip list')
     print(e)
     sys.exit(1)
+    time.sleep(5)
 
 
 
@@ -85,16 +92,14 @@ def defaultset():
             print('creating credentials default settings')
 
             defaultsettings= dict()
-            defaultsettings['strategy']={"BBLEN":14,
-                                        "BBSTDEVE":2.1 ,
-                                        "trend_period":365,
-                                        "vol_filter_length":15,
-                                        "vol_ma_length":10,
-                                        "trail_stop_pct":0.002,
-                                        "trail_offset_pct":0.002,
-                                        "sl_pct":0.001,
-                                        "tp_pct":0.001,
-                                        "tmf":'5min'
+            defaultsettings['strategy']={"ema_len": 14,
+                                        "rsi_len": 14,
+                                        "sl_pct": 0.019,
+                                        "tp_pct": 0.06,   
+                                        "commision":100,
+                                        "amount":15000,
+                                        "tmf":"FIVE_MINUTE",
+                                        "paper": True
                                         }
             defaultsettings['Angelcred']={
                 "api_key":"",
@@ -153,7 +158,7 @@ def defaultcsv():
     orderpath= os.path.normpath(orderpath)
 
     if not os.path.exists(orderpath):
-        orderdata = pd.DataFrame(columns=['AccountNo','Entrytime','Broker','Side','Buyorderid','Symbol','Token','Status','Ltp','Qty','AveragePrice','Sellorderid','Sellprice','TargetHit','Slhit','Tslhit','Exittime','Target','Trail','Sl','Backtest','Transactiontype','Order_type','Exchange','Pnl','Commision','Netpnl'],dtype='object')
+        orderdata = pd.DataFrame(columns=['AccountNo','Entrytime','Broker','Side','Buyorderid','Symbol','Token','Status','Ltp','Qty','AveragePrice','Sellorderid','Sellprice','TargetHit','Slhit','Tslhit','Exittime','Target','Trail','Sl','Backtest','Transactiontype','Order_type','Exchange','Pnl','Commision','Netpnl','retry'],dtype='object')
         orderdata.to_csv(orderpath)
     accountpath= f"config/account.csv"
     accountpath= os.path.join(currenenv,accountpath)

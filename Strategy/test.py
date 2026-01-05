@@ -47,7 +47,7 @@ def testorder(backtest):
     obj= utility.misc()
     orderparam= dict()
 
-    orderparam['symboltoken']='54452'
+    orderparam['symboltoken']='57133'
     orderparam['exchange']='NFO'
     orderparam['transactiontype']='BUY'
     orderparam['product_type']='INTRADAY'
@@ -59,7 +59,7 @@ def testorder(backtest):
     orderparam['Amount']=0
     orderparam['quantity']=75
     orderparam['ltp']=24200
-    orderparam['tradingsymbol']='NIFTY24APR25FUT'
+    orderparam['tradingsymbol']='NIFTY29MAY25FUT'
     orderparam['Side']='Long'
     orderparam['updated_atdiff']=1
     orderparam['TargetHit']=False
@@ -72,15 +72,9 @@ def testorder(backtest):
 
     order= obj.processorder(orderparam,backtest=backtest)
     
-def testmerge():
-    data=utilis.mergebacktest()
-    return data
-def testbuildcandle():
-    data= utilis.getdata('NIFTY50',True)
-    print(data.head())
-    candle= utilis.buildcandels(data,'5min')
-    print(candle.head())
-    return candle
+
+
+
 def testclosorder():
     data = utilis.closeorder()
     print(data)
@@ -90,17 +84,8 @@ def testpnl():
 
 def websockettest():
     utilis.startwebsocket()
-times= time.time()
-# data =utilis.getmergedata('nifty')
-# websockettest()
-from concurrent.futures import ThreadPoolExecutor
-times= time.time()
 
+def testgettoken():
+    utilis.gettoken('NIFTY')
 
-import datetime
-date= datetime.datetime.today()
-print(f"{date.year}-{date.month}")
-
-# symboldata=angel.searchscrip(instrument='FUTIDXS')
-# print(symboldata)
-testorder(False)
+testgettoken()

@@ -18,6 +18,9 @@ import datetime
 import math
 import pytz
 import os 
+import numpy as np
+
+
 import pathlib as p
 from stat import *
 
@@ -39,18 +42,20 @@ def searchscrip (Symbol='',exchange='NFO',instrument='FUT',instrumentT='FUTIDX')
             logpath= os.path.join(path,'data/NFO.csv')
             logpath= os.path.normpath(logpath)
 
-            db.to_csv(logpath)
+            # db.to_csv(logpath)
             if instrument =='TOKEN':
 
                 db =db[db['token']==Symbol] 
 
             if instrument=='FUT':
-                db = db[db['instrumenttype'] == instrumentT]         
+                db = db[db['exch_seg'] == instrumentT]         
 
 
             elif instrument !='EQ':
-                db =db[db['instrumenttype']==instrument] 
+                db =db[db['exch_seg']==exchange] 
                 db = db[db['name'] ==  Symbol ]   
+                print(db,'db')
+                
 
 
             else:
@@ -62,39 +67,48 @@ def searchscrip (Symbol='',exchange='NFO',instrument='FUT',instrumentT='FUTIDX')
         except Exception as err:
             logger.error(err)
             raise err
-
 # RES= searchscrip('NIFTY',instrument='FUTIDX') 
 
-symboldata=searchscrip(instrumentT='FUTIDXS')
+symboldata=searchscrip(instrumentT='NFO')
 
 
-def preparetoken():
+def preparetoken(symbolkey='symbol'):
     dkeys= {}
-    print(path)
     sympath = os.path.join(path,"config/symbol.json")
     sympath= os.path.normpath(sympath)
     with open(sympath) as f:
         loaded_dict = json.load(f)
     tokens= []
-    symbol = loaded_dict['symbol']
+    symbol = loaded_dict[symbolkey]
+    
     for i in symbol:
-       data= searchscrip(i,instrumentT='FUTIDX')
-       data= data.sort_values(by='expiry')
+        
+        if i in 'NIFTY,BANKNIFTY,SENSEX,FINNIFTY':
+            setindex= 'FUTIDX'
+        else:
+            setindex= 'FUTSTK'
+        print(setindex,i)
+        data= searchscrip(i,instrument='FUTIDX')
+        data['expiry'] = pd.to_datetime(data['expiry'],format="%d%b%Y")
+        data= data.sort_values(by='expiry')
+        data= data[data['instrumenttype']==setindex] 
+
+        print(data,'DATA')
        
-       tk= data['token'].iloc[0]
-       print(tk)
-       tokens.append(tk)
-       dkeys[i]=[]
+        tk= data['token'].iloc[0]
+        tokens.append(tk)
+        dkeys[i]=[]
 
 
     return tokens,dkeys
 
-tokens1,finaldata= preparetoken()
+# tokens1,finaldata= preparetoken()
 class Ltp:
     def __init__(self,data) :
         try:
+            print(data)
             self.data= {}
-            self.data['Close'] =int(data['last_traded_price'])/100 
+            self.data['close'] =int(data['last_traded_price'])/100 
             self.data['updated_at']= time.time()
             self.data['exchange_timestamp']= data['exchange_timestamp']
             self.data['exchange']= 'NFO'
@@ -111,29 +125,19 @@ class Ltp:
             self.data['OI']= data['open_interest']  if 'open_interest' in data.keys() else 0
 
             sym=data['token']
-            
-            symbold=symboldata[symboldata['token']==sym]
 
-            sym = symbold['name'].iloc[-1]
-            self.data['symbol']= symbold['symbol'].iloc[-1]
-            self.data['lotsize']= symbold['lotsize'].iloc[-1]
-
-
-
-            date= datetime.datetime.today().date()
-
-            rawpath= os.path.join(path,f'data/feeddata/{date.month}-{date.year}/{sym}')
-
-            
+        
+            rawpath= os.path.join(path,f'data/feeddata/')
+            rawpath= os.path.normpath(rawpath)
             if  not os.path.exists(rawpath):
                 os.makedirs(rawpath)
-            rawpath= os.path.join(rawpath,f'{sym}.json')
-            rawpath= os.path.normpath(rawpath)
-            # if not os.path.exists(rawpath):
-            #     file= open(rawpath,'a')
-            #     json.dump([],file,indent=4)
+            data= pd.DataFrame([self.data])
+            # data['updated_at']= pd.to_datetime(data['updated_at'],unit='s')
+            data.to_json(os.path.join(rawpath,f'{sym}_ltp.json'),orient='records',lines=True,mode='a')
 
-            self.save_depth_data(sym,self.data,rawpath)
+
+
+            # self.save_depth_data(sym,self.data,rawpath)
 
 
 
@@ -199,18 +203,26 @@ class order:
 class SMARTAPI(object) :
     
     def __init__(self, user,api_key ='', username = '',pwd = '',token=""):
+        
         creddata= self.cred()
         creddata=creddata['Angelcred']
         self.api= creddata['api_key'] 
         self.username=creddata['username']
-        self.pwd = creddata['pwd']
+        self.pwd = str(creddata['pwd'])
+        self.token = creddata['token']   
+        print(creddata,'creddata')
+        if self.api=='' or self.username=='' or self.pwd=='' or self.token=='':
+            logger.error("Angel Broking credentials are not set properly.")
+            raise ValueError("Angel Broking credentials are not set properly.")
+
+      
+
         self.orderid = None
         self.authToken= None
         self.refreshToken= None
         self.feedToken = None
         self.smartApi = smartConnect.SmartConnect(self.api)
         self.userid= user
-        self.token = creddata['token']   
         self.decimals = 10**6
         self.occurred= 0
         
@@ -262,6 +274,7 @@ class SMARTAPI(object) :
         return self.smartApi
     def get_angel_client(self):
         try:
+            print(self.username)
             filepath= os.path.join(path,f'Broker/{self.username}.json')
             filepath= os.path.normpath(filepath)
 
@@ -281,8 +294,7 @@ class HTTP(SMARTAPI):
         super().__init__(self,api_key , username ,pwd,token)
         self.user=user
         self.smartApi=self.client_()
-        
-        
+        print('HTTP init called')
     
     
 
@@ -324,39 +336,44 @@ class HTTP(SMARTAPI):
 
     
     def candels(self,exchange,symboltoken,interval):
-        print(exchange,symboltoken,interval)
-        todate= datetime.datetime.today().astimezone(pytz.timezone('Asia/Kolkata'))
-        fromdate=todate- datetime.timedelta(days=99)
-        todate= todate.strftime("%Y-%m-%d %H:%M")
-        fromdate= fromdate.strftime("%Y-%m-%d %H:%M")
+        try:
 
-        candleParams={  
-        "exchange": exchange,
-        "symboltoken": symboltoken,
-        "interval": interval,
-        "fromdate":fromdate ,
-        "todate": todate
-        }
-        candledetails= self.smartApi.getCandleData(candleParams)
-        columns= ['updated_at', 'open', 'high', 'low', 'Close', 'Volume']
-        candledetails= pd.DataFrame(candledetails['data'],columns=columns)
-        print(candledetails)
-        candledetails['OI']=0
+            todate= datetime.datetime.today().astimezone(pytz.timezone('Asia/Kolkata'))
+            fromdate=todate- datetime.timedelta(days=300)
+            todate= todate.strftime("%Y-%m-%d %H:%M")
+            fromdate= fromdate.strftime("%Y-%m-%d %H:%M")
+            candleParams={  
+            "exchange": exchange,
+            "symboltoken": symboltoken,
+            "interval": interval,
+            "fromdate":fromdate ,
+            "todate": todate
+            }
+            candledetails= self.smartApi.getCandleData(candleParams)
+            columns= ['updated_at', 'open', 'high', 'low', 'close', 'volume']
+            candledetails= pd.DataFrame(candledetails['data'],columns=columns)
+            candledetails['oi']=0
 
-        return candledetails
+            return candledetails
+        except Exception as e:
+            logger.error(e,exc_info=True)
+            return None
+        
                 
     
     def get_quotes(self,exchangeTokens):
-        mode= 'FULL'    
-        # tokens= {
-        # segment: [str(exchangeTokens)]
-        # }
-        print(exchangeTokens)
+        try:
+            mode= 'FULL'    
         
-        # client= self.client_()
-        data =self.smartApi.getMarketData(mode,exchangeTokens)
+
         
-        return data
+            # client= self.client_()
+            data =self.smartApi.getMarketData(mode,exchangeTokens)
+        
+            return data
+        except Exception as e:
+            logger.error(e,exc_info=True)
+
                 
 
    
@@ -379,11 +396,11 @@ class HTTP(SMARTAPI):
 
                 orderparams1 = {
                         "variety": "NORMAL",
-                        "tradingsymbol": orderparam['Symbol'],
+                        "tradingsymbol": orderparam['tradingsymbol'],
                         "symboltoken":str(orderparam['Token']),
                         "transactiontype": orderparam['Transactiontype'],
                         "exchange": orderparam['exchange'],
-                        "ordertype": orderparam['ordertype'],
+                        "ordertype": orderparam['order_type'],
                         "producttype": orderparam['product_type'],
                         "duration": "DAY",
                         "price": orderparam['price'],
@@ -404,19 +421,23 @@ class HTTP(SMARTAPI):
         try:
 
             
-            print(PAPER,'paper')
-            print(orderparam)
+     
             quantity=orderparam['quantity']
 
             orderid= None
             orderupdate= orderobject() 
-              
+            retryid=int(orderupdate['retry'].iloc[-1])+1 if orderupdate['retry'].iloc[-1]  is not np.nan else 1
+            orderupdate['Buyorderid']= orderupdate['Buyorderid'].astype('object')
+
             orderupdate['Backtest']= orderupdate['Backtest'].astype('object')      
             orderupdate['Order_type']= orderupdate['Order_type'].astype('object')      
             orderupdate['Side']= orderupdate['Side'].astype('object')   
             orderupdate['Entrytime']= orderupdate['Entrytime'].astype('object') 
             orderupdate['Exittime']= orderupdate['Exittime'].astype('object')   
-            orderupdate['Status']= orderupdate['Status'].astype('object')      
+            orderupdate['Status']= orderupdate['Status'].astype('object')   
+            orderupdate['retry']= orderupdate['retry'].astype('object')   
+
+
 
 
 
@@ -425,62 +446,63 @@ class HTTP(SMARTAPI):
 
             
 
-            minqty= None
-            if int(orderparam['Amount'])!=0 and not  PAPER:
-                wallet = self.wallet()
-                minvalue= min(float(wallet['net']),orderparam['Amount'])
-                if orderparam['instrument']=='EQ':
-                    minqty=int(math.floor(minvalue/float(orderparam['ltp'])))
-                else:
-                    
-                    
-                    minqty=int((minvalue/int(orderparam['ltp']))/int(orderparam['lotsize']))*int(orderparam['lotsize'])
-                    print(minqty)
-                    minqty=int(min(minqty,int(orderparam['lotsize'])))
-            maxvalue=float(orderparam['Amount']) 
-            maxqty=int(math.floor(maxvalue/float(orderparam['ltp'])))
+           
 
-            quantity=orderparam['quantity'] if minqty is None else minqty
-            quantity=orderparam['quantity']  if quantity== 0  else quantity
-            maxfinal= None
             lastindex= len(orderupdate)
-            print(lastindex) 
             lastindex=lastindex+1
             if PAPER:
-                maxfinal= max(int(quantity),int(maxqty))
-                orderupdate.loc[lastindex,'Qty']=maxfinal         
+                orderupdate.loc[lastindex,'Qty']=quantity         
 
 
             orderparams = {
             "variety": "NORMAL",
             "tradingsymbol": orderparam['tradingsymbol'],
-            "symboltoken":str(orderparam['symboltoken']),
+            "symboltoken":str(int(orderparam['symboltoken'])),
             "transactiontype": orderparam['transactiontype'],
             "exchange": orderparam['exchange'],
             "ordertype": orderparam['order_type'],
             "producttype": orderparam['product_type'],
             "duration": "DAY",
-            "price": orderparam['price'],
+            "price": float(orderparam['price']),
             "squareoff": "0",
             "stoploss": "0",
-            "quantity": quantity}
-            print(orderparams)
+            "quantity": int(quantity)}
             if not PAPER:
-                print('placing order')
                 orderid = self.smartApi.placeOrder(orderparams)
-                print(orderid)
-                orderupdate.loc[lastindex,'Buyorderid']=orderid
-                orderupdate.loc[lastindex,'Backtest']=False
+
+                if orderid:
+                    orderupdate.loc[lastindex,'Buyorderid']=orderid
+                    orderupdate.loc[lastindex,'Backtest']=False
+                    time.sleep(1)
+                    statuschec = self.smartApi.individual_order_details(orderid)
+                    
+                    orderupdate.loc[lastindex,'Status']=True  if statuschec['data'] else False
+                    
+                    orderupdate.loc[lastindex,'retry']= 0  if statuschec['data'] else retryid
+                    
+                        
+
+                
+
+                else:
+
+
+                    orderupdate.loc[lastindex,'retry']=orderupdate['retry'].iloc[-1]+1   
+
+
 
                 
             else:
 
                 orderupdate.loc[lastindex,'Buyorderid']=self.uniqueno()
                 orderupdate.loc[lastindex,'Backtest']=True
+                orderupdate.loc[lastindex,'Status']=True
+                orderupdate.loc[lastindex,'retry']= 0 
+
+
 
                 
             # orderparam['user']=1
-            orderupdate.loc[lastindex,'Status']=True
             orderupdate.loc[lastindex,'AveragePrice']=orderparam['ltp']
             orderupdate.loc[lastindex,'Broker']='ANGEL'
             orderupdate.loc[lastindex,'Tradingsymbol']=orderparam['tradingsymbol']
@@ -490,13 +512,23 @@ class HTTP(SMARTAPI):
             orderupdate.loc[lastindex,'Product_type']=orderparam['product_type']
             orderupdate.loc[lastindex,'Sl']=orderparam['sl']
             orderupdate.loc[lastindex,'Target']=orderparam['target']
-            orderupdate.loc[lastindex,'Trail']=orderparam['trail']
-            orderupdate.loc[lastindex,'Entrytime']=datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata'))
+            # orderupdate.loc[lastindex,'Trail']=orderparam['trail']
+            orderupdate.loc[lastindex,'Entrytime']=datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata')).strftime("%Y-%m-%d %H:%M:%S")
             orderupdate.loc[lastindex,'Exchange']=orderparam['exchange']
             orderupdate.loc[lastindex,'Side']='LONG' if orderparam['transactiontype']=='BUY' else 'SHORT'
             orderupdate.loc[lastindex,'TargetHit']=orderparam['TargetHit']
             orderupdate.loc[lastindex,'Slhit']=orderparam['Slhit']     
-            orderupdate.loc[lastindex,'Tslhit']=orderparam['Tslhit']     
+            # orderupdate.loc[lastindex,'Tslhit']=orderparam['Tslhit']   
+            orderupdate.loc[lastindex,'AccountNo']=orderparam['AccountNo']   if  'AccountNo'  in orderparam.keys() else None
+            orderupdate.loc[lastindex,'Qty']=quantity
+            orderupdate.loc[lastindex,'forclosed']=False
+            orderupdate.loc[lastindex,'Ltp']=0.0
+        
+
+
+
+
+              
             orderobject(newdata=orderupdate,newdataflag=True)
             
             
@@ -565,6 +597,7 @@ class WebSocketConnect(SMARTAPI):
 
         
 
+
         self.sws = smartWebSocketV2.SmartWebSocketV2(authToken, self.api, self.username, feedToken,
                                     max_retry_attempt=2, retry_strategy=0, retry_delay=10, retry_duration=30)
 
@@ -573,8 +606,8 @@ class WebSocketConnect(SMARTAPI):
         self.correlation_id = "abcde"   
         self.mode =3
 
-        tokenlist,dkyes= preparetoken()
-        print(tokenlist)
+        # tokenlist,dkyes= preparetoken()
+        tokenlist= [ '26000']
         self.token_list = [
         {
             "exchangeType": 2,
@@ -587,9 +620,9 @@ class WebSocketConnect(SMARTAPI):
             self.sws.close_connection()
 
         def on_data(wsapp, message):
-            logger.info("Ticks: {}".format(message))
+            # logger.info("Ticks: {}".format(message))
             Ltp(message)
-            print(message)
+            # print(message)
             # close_connection()
 
 

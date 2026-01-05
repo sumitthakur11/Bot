@@ -13,14 +13,13 @@ print(logpath,'logpath')
 logger=env.setup_logger(logpath)
 retryno=0
 
-def checkopenorder(self):
+def checkopenorder(ANGEL=None):
     while True:
         try :
             misc= utility.misc()
                 
-            misc.closeorder()
-            misc.checkpnlbox()
-            
+            misc.closeorder(ANGEL=ANGEL)
+            misc.checkpnlbox(ANGEL=ANGEL)
 
         except KeyboardInterrupt as key:
             logger.info(f"keyboard intrupted stopping the quode feed ")
