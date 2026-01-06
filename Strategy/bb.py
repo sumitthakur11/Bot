@@ -147,12 +147,12 @@ class strategy:
             price=data['close'].iloc[-1] 
             lot= int(self.settings['amount']/price/lotsize)*lotsize
             qty= max(lotsize,lot)
-            data['updated_at']= pd.to_datetime(data['updated_at'],unit='ms')
             
             if (data['buy_final'].iloc[-1]) and (not data['buy_final'].iloc[-2] ) : 
 
                 
                 orderparam=self.ordersing(price,sl,target,qty,'BUY',0,data['symbol'].iloc[-1],data['token'].iloc[-1])
+                data['updated_at']= pd.to_datetime(data['updated_at'],unit='ms')
                 orderparam['updated_atdiff']=data['updated_at'].iloc[-1].minute-data['updated_at'].iloc[-2].minute
 
                 self.utilityobj.processorder(orderparam,backtest=backtest,ANGEL=ANGEL)

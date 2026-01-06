@@ -199,7 +199,7 @@ class misc:
            
 
 
-            if datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata'))> datetime.datetime.fromtimestamp(orderobj['Entrytime'].iloc[-1].timestamp()/1000,tz=pytz.timezone('Asia/Kolkata'))+datetime.timedelta(minutes=orderparams['updated_atdiff']):
+            if datetime.datetime.now(pytz.timezone("Asia/Kolkata")) > (pd.to_datetime(orderobj['Entrytime'].iloc[-1]).tz_localize("Asia/Kolkata") if pd.to_datetime(orderobj['Entrytime'].iloc[-1]).tzinfo is None else pd.to_datetime(orderobj['Entrytime'].iloc[-1]).tz_convert("Asia/Kolkata")) + datetime.timedelta(minutes=orderparams['updated_atdiff']):
 
                 if backtest  and (not  orderobj['Status'].any() ):
                     orderobj=orderobj[orderobj['Backtest']==True]
