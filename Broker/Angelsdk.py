@@ -436,6 +436,25 @@ class HTTP(SMARTAPI):
             orderupdate['Exittime']= orderupdate['Exittime'].astype('object')   
             orderupdate['Status']= orderupdate['Status'].astype('object')   
             orderupdate['retry']= orderupdate['retry'].astype('object')   
+            orderupdate['exitedqty']= orderupdate['exitedqty'].astype('int')
+            orderupdate['exitqty']= orderupdate['exitqty'].astype('float')
+            orderupdate['TargetHit']= orderupdate['TargetHit'].astype('object')
+            orderupdate['TargetHit1']= orderupdate['TargetHit1'].astype('object')
+            orderupdate['TargetHit2']= orderupdate['TargetHit2'].astype('object')
+            orderupdate['TargetHit3']= orderupdate['TargetHit3'].astype('object')
+            orderupdate['TargetHit4']= orderupdate['TargetHit4'].astype('object')
+            orderupdate['Slhit']= orderupdate['Slhit'].astype('object')
+            orderupdate['Slhit1']= orderupdate['Slhit1'].astype('object')
+            orderupdate['Slhit2']= orderupdate['Slhit2'].astype('object')
+            orderupdate['sl1processed']=orderupdate['sl1processed'].astype('object') if 'sl1processed' in orderupdate.columns else None
+            orderupdate['sl2processed']=orderupdate['sl2processed'].astype('object') if 'sl2processed' in orderupdate.columns else None
+            orderupdate['target1processed']=orderupdate['target1processed'].astype('object') if 'target1processed' in orderupdate.columns else None
+            orderupdate['target2processed']=orderupdate['target2processed'].astype('object') if 'target2processed' in orderupdate.columns else None
+            orderupdate['target3processed']=orderupdate['target3processed'].astype('object') if 'target3processed' in orderupdate.columns else None
+            orderupdate['target4processed']=orderupdate['target4processed'].astype('object') if 'target4processed' in orderupdate.columns else None
+            orderupdate['Tslhit']=orderupdate['Tslhit'].astype('object') if 'Tslhit' in orderupdate.columns else None
+            orderupdate['tslprocessed']=orderupdate['tslprocessed'].astype('object') if 'tslprocessed' in orderupdate.columns else None
+
 
 
 
@@ -469,16 +488,18 @@ class HTTP(SMARTAPI):
             "quantity": int(quantity)}
             if not PAPER:
                 orderid = self.smartApi.placeOrder(orderparams)
+                print(orderid,'orderidplaced')
 
                 if orderid:
                     orderupdate.loc[lastindex,'Buyorderid']=orderid
                     orderupdate.loc[lastindex,'Backtest']=False
                     time.sleep(1)
-                    statuschec = self.smartApi.individual_order_details(orderid)
+                    # statuschec = self.smartApi.individual_order_details(orderid)
+                    # print(statuschec,'statuschec')
                     
-                    orderupdate.loc[lastindex,'Status']=True  if statuschec['data'] else False
+                    orderupdate.loc[lastindex,'Status']=True #if statuschec['data'] else False
                     
-                    orderupdate.loc[lastindex,'retry']= 0  if statuschec['data'] else retryid
+                    orderupdate.loc[lastindex,'retry']= 0  #if statuschec['data'] else retryid
                     
                         
 
@@ -517,13 +538,32 @@ class HTTP(SMARTAPI):
             orderupdate.loc[lastindex,'Exchange']=orderparam['exchange']
             orderupdate.loc[lastindex,'Side']='LONG' if orderparam['transactiontype']=='BUY' else 'SHORT'
             orderupdate.loc[lastindex,'TargetHit']=orderparam['TargetHit']
+            orderupdate.loc[lastindex,'TargetHit1']=orderparam['TargetHit1']
+            orderupdate.loc[lastindex,'TargetHit2']=orderparam['TargetHit2']
+            orderupdate.loc[lastindex,'TargetHit3']=orderparam['TargetHit3']
+            orderupdate.loc[lastindex,'TargetHit4']=orderparam['TargetHit4']
+            orderupdate.loc[lastindex,'Slhit1']=orderparam['Slhit1']
+            orderupdate.loc[lastindex,'Slhit2']=orderparam['Slhit2']
+
+
+
             orderupdate.loc[lastindex,'Slhit']=orderparam['Slhit']     
             # orderupdate.loc[lastindex,'Tslhit']=orderparam['Tslhit']   
             orderupdate.loc[lastindex,'AccountNo']=orderparam['AccountNo']   if  'AccountNo'  in orderparam.keys() else None
             orderupdate.loc[lastindex,'Qty']=quantity
             orderupdate.loc[lastindex,'forclosed']=False
             orderupdate.loc[lastindex,'Ltp']=0.0
-        
+            orderupdate.loc[lastindex,'exitqty']=orderparam['exitqty'] if 'exitqty' in orderparam.keys() else 0
+            orderupdate.loc[lastindex,'exitedqty']= orderparam['exitedqty'] if 'exitedqty' in orderparam.keys() else 0
+            orderupdate.loc[lastindex,'sl1processed']= orderparam['sl1processed'] if 'sl1processed' in orderparam.keys() else False
+            orderupdate.loc[lastindex,'sl2processed']= orderparam['sl2processed'] if 'sl2processed' in orderparam.keys() else False
+            orderupdate.loc[lastindex,'target1processed']= orderparam['target1processed'] if 'target1processed' in orderparam.keys() else False
+            orderupdate.loc[lastindex,'target2processed']= orderparam['target2processed'] if 'target2processed' in orderparam.keys() else False
+            orderupdate.loc[lastindex,'target3processed']= orderparam['target3processed'] if 'target3processed' in orderparam.keys() else False
+            orderupdate.loc[lastindex,'target4processed']= orderparam['target4processed'] if 'target4processed' in orderparam.keys() else False
+            orderupdate.loc[lastindex,'Tslhit']= orderparam['Tslhit'] if 'Tslhit' in orderparam.keys() else False
+            orderupdate.loc[lastindex,'tslprocessed']= orderparam['tslprocessed'] if 'tslprocessed' in orderparam.keys() else False
+
 
 
 

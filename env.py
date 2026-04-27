@@ -192,14 +192,43 @@ defaultcsv()
 
 import logging
 
+import logging
+from logging.handlers import RotatingFileHandler
+
 def setup_logger(logpath):
-    logger = logging.getLogger(logpath)  
+    logger = logging.getLogger(logpath)
     logger.setLevel(logging.DEBUG)
-    file_handler = logging.FileHandler(logpath)
+
+    # Prevent duplicate handlers
+    if logger.handlers:
+        return logger
+
+    # Rotate at 10 MB, keep 5 backups
+    file_handler = RotatingFileHandler(
+        logpath,
+        maxBytes=10 * 1024,  # 10 MB
+        backupCount=5
+    )
+
     file_handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%d-%m-%y %H:%M:%S")
+
+    formatter = logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(message)s",
+        datefmt="%d-%m-%y %H:%M:%S"
+    )
+
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
     return logger
+# def setup_logger(logpath):
+#     logger = logging.getLogger(logpath)  
+#     logger.setLevel(logging.DEBUG)
+#     file_handler = logging.FileHandler(logpath)
+#     file_handler.setLevel(logging.DEBUG)
+#     formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%d-%m-%y %H:%M:%S")
+#     file_handler.setFormatter(formatter)
+#     logger.addHandler(file_handler)
+
+#     return logger
 

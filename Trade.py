@@ -16,12 +16,21 @@ import pytz
 import sys
 import time
 import signal
+import logging
+from pathlib import Path
 
 path = env.currenenv
 logerpath=os.path.join(path,'Botlogs/Trade.logs') 
 loggerpath= os.path.normpath(logerpath)
+# Clear log files larger than 10 MB
+def clearlogs():
+    for i in Path(f'{path}/Botlogs').glob('*.logs'):
+        if i.stat().st_size > 10 * 1024 * 1024:  # 10 MB
+            with open(i, 'w'):
+                pass  # Clear the file contents
+        
 misc=utility.misc()
-misc.restartdata()
+# misc.restartdata()
 
 logger= env.setup_logger(loggerpath)       
 
@@ -77,7 +86,7 @@ def startprice():
             logger.error(e,exc_info=True)
             continue
         time.sleep(300)  # Wait for 5 minutes before fetching again
-     
+
 def generate_random_candles(
         start_price=100,
         count=50,
@@ -120,6 +129,7 @@ def generate_random_candles(
     return pd.DataFrame(candles)
 
 
+
 def mainfunc_safe(token):
     try:
         mainfunc(token)
@@ -129,9 +139,13 @@ def mainfunc_safe(token):
         traceback.print_exc()
     
 def mainfunc(TOKEN):
+    prevsignal=False
+
     while not stop_event.is_set():
         try :
+            clearlogs()
             print(f"start trade for token {TOKEN}")
+        
             settings= misc.loadsettings()
             tokenlist= misc.loadtokenlist()
             tokenlist['token'] = tokenlist['token'].astype(str).str.strip()
@@ -174,9 +188,17 @@ def mainfunc(TOKEN):
                     data['symbol']= tokenfilter['symbol'].iloc[0]
                     data['token']= TOKEN
                     stat=bb.strategy()
-                    stat.main(data,settings['paper'],tokenfilter['lotsize'].iloc[0],ANGEL)
-                    
-                # else:
+                    res=stat.main(data,settings['paper'],tokenfilter['lotsize'].iloc[0],prevsignal,ANGEL)
+                    prevsignal=res
+            if datetime.now(tz=pytz.timezone('Asia/Kolkata')).time() > pd.Timestamp('15:30').time():
+                command= 'sudo systemctl stop tradingbot.service'
+                os.system(command)
+                logger.info('Market closed stopping the trade bot service')
+                
+                # logger.info(f"start trade for token {TOKEN}")
+                # print(f"start trade for token {TOKEN}")
+                
+               # else:
                 #     logger.info(f"LTP {ltp} not in range for trading for token {TOKEN}")
                 #     print(f"LTP {ltp} not in range for trading for token {TOKEN}")
         except KeyboardInterrupt as key:

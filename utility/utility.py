@@ -1,3 +1,5 @@
+import sys
+
 from Bot import env
 from Bot.Broker import Angelsdk as Angel
 
@@ -25,13 +27,16 @@ print(logpath,'logpath')
 logger=env.setup_logger(logpath)
 class misc:
     def __init__(self):
-        orderdata= [['',datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata')).strftime("%Y-%m-%d %H:%M:%S"),'','','','','',False,0.0,0,0.0,'',0.0,False,False,False,datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata')).strftime("%Y-%m-%d %H:%M:%S"),0.0,0.0,0.0,False,'','','',0.0,0.0,0.0,0,False]]
+        orderdata= [['',datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata')).strftime("%Y-%m-%d %H:%M:%S"),'','','','','',False,0.0,0,0.0,'',0.0,False,False,False,False,False,False,False,False,False,False,datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata')).strftime("%Y-%m-%d %H:%M:%S"),0.0,0.0,0.0,False,'','','',0.0,0.0,0.0,0,False,0,0,False,False,False,False,False,False,False]]
 
-        self.orderdata = pd.DataFrame(orderdata,columns=['AccountNo','Entrytime','Broker','Side','Buyorderid','Symbol','Token','Status','Ltp','Qty','AveragePrice','Sellorderid','Sellprice','TargetHit','Slhit','Tslhit','Exittime','Target','Trail','Sl','Backtest','Transactiontype','Order_type','Exchange','Pnl','Netpnl','Commision','retry','forclosed'],dtype='object')
+        self.orderdata = pd.DataFrame(orderdata,columns=['AccountNo','Entrytime','Broker','Side','Buyorderid','Symbol','Token','Status','Ltp','Qty','AveragePrice','Sellorderid','Sellprice','TargetHit','TargetHit1','TargetHit2','TargetHit3','TargetHit4','TargetHit5','Slhit','Slhit1','Slhit2','Tslhit','Exittime','Target','Trail','Sl','Backtest','Transactiontype','Order_type','Exchange','Pnl','Netpnl','Commision','retry','forclosed','exitqty'
+                                                         ,'exitedqty','sl1processed','sl2processed','target1processed','target2processed','target3processed','target4processed',"tslprocessed"],dtype='object')
         self.account = pd.DataFrame(columns=['AccountNo','Apikey','Secret','Password','Token','Lot','Broker'],dtype='object')
         data=self.orderobjectread()
         self.fetchaccounts()
         print('initialised sucessfully')
+
+    
 
     def restartdata(self):
         data=self.orderobjectread()
@@ -114,6 +119,45 @@ class misc:
     def uniqueno(self):
         return int(ts.time()*1000)
 
+
+    def repcloseorder(self,orderobj,orderobjTrue,i,settings,ANGEL):
+        ind= orderobjTrue.index[i]
+
+        orderparam= dict()
+        orderparam['Token']= orderobjTrue['Token'].iloc[i]
+        orderparam['exchange']=orderobjTrue['Exchange'].iloc[i]
+        orderparam['Transactiontype']='SELL' if orderobjTrue['Transactiontype'].iloc[i]=='BUY' else 'BUY'
+        orderparam['product_type']='CARRYFORWARD'
+        orderparam['order_type']='MARKET'
+        orderparam['price']=orderobjTrue['Ltp'].iloc[i]
+        # qty should be multiple of lot size and should not exceed the quantity in the order
+        lotsize = settings['lotsize']
+        orderparam['quantity']=orderobjTrue['Qty'].iloc[i]*orderobjTrue['exitqty'].iloc[i] if orderobjTrue['exitqty'].iloc[i] else orderobjTrue['Qty'].iloc[i]
+        # Ensure quantity is a multiple of lot size
+        orderparam['quantity'] = min(orderparam['quantity'], orderobjTrue['Qty'].iloc[i] - orderobjTrue['exitedqty'].iloc[i]) if orderobjTrue['Slhit'].iloc[i] or orderobjTrue['TargetHit'].iloc[i] or orderobjTrue['Tslhit'].iloc[i] else orderparam['quantity']
+        orderparam['quantity'] =   max(lotsize, orderparam['quantity'] // lotsize * lotsize)
+        print('Original quantity:', orderparam['quantity'])
+        orderparam['tradingsymbol']=orderobjTrue['Tradingsymbol'].iloc[i]
+        
+
+
+        orderid=ANGEL.closetrade(orderparam,orderobjTrue['Backtest'].iloc[i])
+        print(f"Order close response for orderid {orderobjTrue['Buyorderid'].iloc[i]} is {orderid}")
+        if orderid:
+
+            print(f"Order {orderobjTrue['Buyorderid'].iloc[i]} closed successfully with Sell order id {orderid}")
+            exitedqty= orderobjTrue['exitedqty'].iloc[i] + orderparam['quantity']
+            orderobj.loc[ind,'exitedqty']= exitedqty
+            orderobj.loc[ind,'Status']=False if exitedqty== orderobjTrue['Qty'].iloc[i] else True 
+            orderobj.loc[ind,'Exittime']=datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata')).strftime("%Y-%m-%d %H:%M:%S")
+            orderobj.loc[ind,'Sellorderid']=orderid
+            orderobj.loc[ind,'Sellprice']=orderobjTrue['Ltp'].iloc[i]
+            orderobj.loc[ind,'Pnl']=float(orderobjTrue['Ltp'].iloc[i]-orderobjTrue['AveragePrice'].iloc[i])*orderobjTrue['Qty'].iloc[i]
+            orderobj.loc[i,'Netpnl']=float( orderobjTrue['Pnl'].iloc[i])-float( orderobjTrue['Commision'].iloc[i])
+            orderobj.loc[ind,'forclosed']=True
+            self.orderobjectwrite(newdata=orderobj,newdataflag=True)
+
+
     def closeorder(self,forceclose=False,ANGEL=None):
         try :
 
@@ -122,49 +166,52 @@ class misc:
             orderobj=pd.DataFrame(orderobj,dtype='object')
             orderobjTrue=orderobj[orderobj['Status']==True]
 
+            settings= self.loadsettings()
+
             if not orderobj.empty:
                 for i in range(len(orderobjTrue)):
-                        if orderobjTrue['Status'].iloc[i] and orderobjTrue['forclosed'].iloc[i]==False:
+                        if orderobjTrue['Status'].iloc[i]: #and orderobjTrue['forclosed'].iloc[i]==False:
                             ind= orderobjTrue.index[i]
 
                              
                             if (orderobjTrue['Slhit'].iloc[i] or orderobjTrue['TargetHit'].iloc[i] or forceclose ) and (not orderobjTrue['Backtest'].iloc[i])  :
-                                # accountdetail = self.fetchaccounts(key=orderobjTrue['AccountNo'].iloc[i])
-
-                                # if not accountdetail.empty:
-                                #     apikey= accountdetail['Apikey'].iloc[-1]
-                                #     username= accountdetail['AccountNo'].iloc[-1]
-                                #     pws= accountdetail['Password'].iloc[-1]
-                                #     token= accountdetail['Token'].iloc[-1]
-                                    # # loginbroker = Angel.SMARTAPI(2,apikey,username,pws,token)
-                                    # # loginbroker.smartAPI_Login()
-
-                                    # brokeri = Angel.HTTP(2,apikey,username,pws,token) 
-                                    orderparam= dict()
                                     
-                                    orderparam['Token']= orderobjTrue['Token'].iloc[i]
-                                    orderparam['exchange']=orderobjTrue['Exchange'].iloc[i]
-                                    orderparam['Transactiontype']='SELL' if orderobjTrue['Transactiontype'].iloc[i]=='BUY' else 'BUY'
-                                    orderparam['product_type']='INTRADAY'
-                                    orderparam['order_type']='MARKET'
-                                    orderparam['price']=orderobjTrue['Ltp'].iloc[i]
-                                    orderparam['quantity']=orderobjTrue['Qty'].iloc[i]
-                                    orderparam['tradingsymbol']=orderobjTrue['Tradingsymbol'].iloc[i]
+                                    print('Check order close for live order............................................................................')
+                                    print('buffer',orderobjTrue['Slhit'].iloc[i],orderobjTrue['Slhit1'].iloc[i],orderobjTrue['Slhit2'].iloc[i],orderobjTrue['TargetHit'].iloc[i],orderobjTrue['TargetHit1'].iloc[i],orderobjTrue['TargetHit2'].iloc[i],orderobjTrue['TargetHit3'].iloc[i],orderobjTrue['TargetHit4'].iloc[i])
+                                
+                                    self.repcloseorder(orderobj,orderobjTrue,i,settings,ANGEL)
+                            
+                                    
 
-
-                                    orderid=ANGEL.closetrade(orderparam,orderobjTrue['Backtest'].iloc[i])
-                                    if orderid:
-                                        orderobj.loc[ind,'Status']=False
-                                        orderobj.loc[ind,'Exittime']=datetime.datetime.now(tz=pytz.timezone('Asia/Kolkata')).strftime("%Y-%m-%d %H:%M:%S")
-                                        orderobj.loc[ind,'Sellorderid']=orderid
-                                        orderobj.loc[ind,'Sellprice']=orderobjTrue['Ltp'].iloc[i]
-                                        orderobj.loc[ind,'Pnl']=float(orderobjTrue['AveragePrice'].iloc[i]-orderobjTrue['Ltp'].iloc[i])*orderobjTrue['Qty'].iloc[i]
-                                        orderobj.loc[i,'Netpnl']=float( orderobjTrue['Pnl'].iloc[i])-float( orderobjTrue['Commision'].iloc[i])
-                                        orderobj.loc[ind,'forclosed']=True
-
-                                        self.orderobjectwrite(newdata=orderobj,newdataflag=True)
-
+                                    if orderobjTrue['Slhit'].iloc[i]:
+                                        logger.info(f"Order {orderobjTrue['Buyorderid'].iloc[i]} closed due to MAX LOSS  HIT")
+                                        sys.exit(0)
                                         
+                            
+
+                            elif (orderobjTrue['Slhit1'].iloc[i]  and orderobjTrue['sl1processed'].iloc[i]==False) or (orderobjTrue['Slhit2'].iloc[i] and orderobjTrue['sl2processed'].iloc[i]==False) and (not orderobjTrue['Backtest'].iloc[i]): 
+                                logger.info(f"Order {orderobjTrue['Buyorderid'].iloc[i]} hit stoploss, processing partial close")
+                                print('Check order close for stoploss partial close............................................................................')
+                                print('buffer',orderobjTrue['Slhit1'].iloc[i],orderobjTrue['Slhit2'].iloc[i])
+                                orderobj.loc[ind,'sl1processed']= True if orderobjTrue['Slhit1'].iloc[i] else orderobjTrue['sl1processed'].iloc[i]
+                                orderobj.loc[ind,'sl2processed']= True if orderobjTrue['Slhit2'].iloc[i] else orderobjTrue['sl2processed'].iloc[i]
+                                self.repcloseorder(orderobj,orderobjTrue,i,settings,ANGEL)
+                            elif (orderobjTrue['TargetHit1'].iloc[i] and orderobjTrue['target1processed'].iloc[i]==False) or (orderobjTrue['TargetHit2'].iloc[i] and orderobjTrue['target2processed'].iloc[i]==False) or (orderobjTrue['TargetHit3'].iloc[i] and orderobjTrue['target3processed'].iloc[i]==False) or (orderobjTrue['TargetHit4'].iloc[i] and orderobjTrue['target4processed'].iloc[i]==False) and (not orderobjTrue['Backtest'].iloc[i]) :
+                                logger.info(f"Order {orderobjTrue['Buyorderid'].iloc[i]} hit target, processing partial close")
+                                print('Check order close for target partial close............................................................................')
+                                print('buffer',orderobjTrue['TargetHit1'].iloc[i],orderobjTrue['TargetHit2'].iloc[i],orderobjTrue['TargetHit3'].iloc[i],orderobjTrue['TargetHit4'].iloc[i])
+                                orderobj.loc[ind,'target1processed']= True if orderobjTrue['TargetHit1'].iloc[i] else orderobjTrue['target1processed'].iloc[i]
+                                orderobj.loc[ind,'target2processed']= True if orderobjTrue['TargetHit2'].iloc[i] else orderobjTrue['target2processed'].iloc[i]
+                                orderobj.loc[ind,'target3processed']= True if orderobjTrue['TargetHit3'].iloc[i] else orderobjTrue['target3processed'].iloc[i]
+                                orderobj.loc[ind,'target4processed']= True if orderobjTrue['TargetHit4'].iloc[i] else orderobjTrue['target4processed'].iloc[i]
+                                self.repcloseorder(orderobj,orderobjTrue,i,settings,ANGEL)
+                            
+                            elif (orderobjTrue['Tslhit'].iloc[i]  and orderobjTrue['tslprocessed'].iloc[i]==False) and (not orderobjTrue['Backtest'].iloc[i]) :
+                                logger.info(f"Order {orderobjTrue['Buyorderid'].iloc[i]} hit trailing stoploss, processing partial close")
+                                print('Check order close for trailing stoploss partial close............................................................................')
+                                print('buffer',orderobjTrue['Tslhit'].iloc[i])
+                                orderobj.loc[ind,'tslprocessed']= True if orderobjTrue['Tslhit'].iloc[i] else orderobjTrue['tslprocessed'].iloc[i]
+                                self.repcloseorder(orderobj,orderobjTrue,i,settings,ANGEL)
                             
                             elif (orderobjTrue['Slhit'].iloc[i]  or orderobjTrue['TargetHit'].iloc[i] or forceclose ) and  (orderobjTrue['Backtest'].iloc[i] ) :
                                     logger.info('Check order close')
@@ -181,6 +228,8 @@ class misc:
 
 
 
+                            
+
 
                             
                                 
@@ -196,13 +245,18 @@ class misc:
             placeorders=False
             
             orderobj=self.orderobjectread()
-           
+            orderretry=orderobj['retry'].iloc[-1]
 
+            entry_time = pd.to_datetime(orderobj['Entrytime'].iloc[-1])
+            if entry_time.tzinfo is None:
+                 entry_time = entry_time.tz_localize("Asia/Kolkata")
+            else:
+                    entry_time = entry_time.tz_convert("Asia/Kolkata")
 
-            if datetime.datetime.now(pytz.timezone("Asia/Kolkata")) > (pd.to_datetime(orderobj['Entrytime'].iloc[-1]).tz_localize("Asia/Kolkata") if pd.to_datetime(orderobj['Entrytime'].iloc[-1]).tzinfo is None else pd.to_datetime(orderobj['Entrytime'].iloc[-1]).tz_convert("Asia/Kolkata")) + datetime.timedelta(minutes=orderparams['updated_atdiff']):
+            
+            if datetime.datetime.now(pytz.timezone("Asia/Kolkata")) > entry_time + datetime.timedelta(minutes=orderparams['updated_atdiff']):
 
                 if backtest  and (not  orderobj['Status'].any() ):
-                    orderobj=orderobj[orderobj['Backtest']==True]
 
 
                     # broker= Angel.HTTP(1)
@@ -212,9 +266,7 @@ class misc:
 
 
 
-                elif (not backtest ) and (not  orderobj['Status'].any() or orderobj.empty ) and orderretry<retry:
-                    orderobj=orderobj[orderobj['Backtest']==False]
-                    orderretry=orderobj['retry'].iloc[-1]
+                elif (not backtest ) and (not  orderobj['Status'].any() ) and orderretry<retry:
                     order_ids=ANGEL.placeorder(orderparams,self.orderobjectwrite,False)
                     orderid.append(order_ids)
 
@@ -241,209 +293,15 @@ class misc:
         except Exception as e :
             logger.error(e,exc_info=True)
 
-
-
    
+
+
+             
             
    
     
-    def checkpnlbox1(self,data):
-        settings= self.loadsettings()
-        averageprice=0
-        targetprbuy=0
-        averagesellprice=0
-        targetsell=0
-        targetbuy=0
-        tslbuyactive=0
-        tslsellactive=0
-        
-        stoplossbuy=stoplossell=False
-        data['high']= data['high'].astype('float')      
-        data['exit']= data['exit'].astype('object')   
-        data['entry']= data['entry'].astype('object') 
-        data['side']= data['side'].astype('object')   
-        data['sellprice']= data['sellprice'].astype('float')
-        data['averageprice']= data['averageprice'].astype('float') 
-        data['Pnl']= data['Pnl'].astype('float')
-        data['Commision']= settings['commision']
-        data['Commision']= data['Commision'].astype('float')
-        data['drawdown']= 0
-        data['drawdown']= data['drawdown'].astype('float')
-
-
-
-        # data['Netpnl']= data['Netpnl'].astype('float')   
-
-        
-        for i in range(len(data)):
-
-            maxhighprice = max(data['high'].iloc[i],data['high'].iloc[i-1])
-            minlowprice = min(data['low'].iloc[i],data['low'].iloc[i-1])
-
-            if  data['buy_final'].iloc[i]  and  (not averageprice) :
-                averageprice=data['close'].iloc[i]
-                data.loc[i,'averageprice']= float(averageprice)
-
-                data.loc[i,'entry']=True
-                data.loc[i,'side']='LONG'
-                if averagesellprice:
-                    data.loc[i,'exit']= True
-                    data.loc[i,'sellprice']= data['low'].iloc[i]
-                    data.loc[i,'Pnl']= averagesellprice-data['low'].iloc[i]
-                    data.loc[i,'drawdown']= float( data['low'].iloc[i])-float(minlowprice)
-                    targetsell= False
-                    stoplossell= False
-                    averagesellprice=0
-                    tslsellactive=0
-
-
-                targetsell= False
-                stoplossell= False
-                tslsellactive=0
-                averagesellprice=0
-
-                     
-
-            elif  data['sell_final'].iloc[i] and (not averagesellprice ):
-                averagesellprice=data['close'].iloc[i]
-                data.loc[i,'averageprice']= averagesellprice
-                data.loc[i,'side']='SHORT'
-                data.loc[i,'entry']=True
-                if averageprice:
-                    data.loc[i,'exit']= True
-                    data.loc[i,'sellprice']= data['high'].iloc[i]
-                    data.loc[i,'Pnl']=float( data['high'].iloc[i])-averageprice
-                    data.loc[i,'drawdown']= float(maxhighprice)-float( data['high'].iloc[i])
-                    targetprbuy=False
-                    stoplossbuy=False
-                    averageprice=0
-                    tslbuyactive=0
-                    targetbuy=0
-
-                     
-            
-
-            
-
-            if averageprice:
-                buyactive= data['high'].iloc[i]*(1+settings['trail_offset_pct'])
-                tslbuyactive=data['high'].iloc[i]>buyactive
-                prevtrailbuy = data['high'].iloc[i]*settings['trail_offset_pct']
-                targetprbuy=averageprice*(1+settings['tp_pct'])
-                targetbuy = data['high'].iloc[i]>targetprbuy
-                stoplossbuy = data['low'].iloc[i]<averageprice*(1-settings['sl_pct'])
-
-
-
-            if tslbuyactive:
-                if (data['high'].iloc[i]<buyactive+prevtrailbuy) and tslbuyactive:
-                     data.loc[i,'exit']= True
-                     data.loc[i,'sellprice']= data['high'].iloc[i]
-
-                     data.loc[i,'Pnl']=float( data['high'].iloc[i])-averageprice
-                     data.loc[i,'drawdown']= float(maxhighprice)-float( data['high'].iloc[i])
-                    #  data.loc[i,'Netpnl']=float( data['Pnl'].iloc[i])-float( data['Commision'].iloc[i])
-
-                     targetprbuy=False
-                     stoplossbuy=False
-                     averageprice=0
-                     tslbuyactive=0
-                     targetbuy=0
-            elif stoplossbuy:
-                    data.loc[i,'exit']= True
-                    data.loc[i,'sellprice']= data['low'].iloc[i]
-                    data.loc[i,'Pnl']=float( data['low'].iloc[i])-averageprice
-                    data.loc[i,'drawdown']= float(maxhighprice)-float( data['low'].iloc[i])
-
-                    # data.loc[i,'Netpnl']=float( data['Pnl'].iloc[i])-float( data['Commision'].iloc[i])
-
-                    targetprbuy=False
-                    stoplossbuy=False
-                    averageprice=0
-                    tslbuyactive=0
-                    targetbuy=0
-                    
-            elif targetbuy:
-                    data.loc[i,'exit']= True
-                    data.loc[i,'sellprice']= data['high'].iloc[i]
-                    data.loc[i,'Pnl']=float( data['high'].iloc[i])-averageprice
-                    data.loc[i,'drawdown']= float(maxhighprice)-float( data['high'].iloc[i])
-
-                    # data.loc[i,'Netpnl']=float( data['Pnl'].iloc[i])-float( data['Commision'].iloc[i])
-
-                    targetprbuy=False
-                    stoplossbuy=False
-                    averageprice=0
-                    tslbuyactive=0
-                    targetbuy=0
-
-                 
-
-                 
-
-
-            if averagesellprice:
-                sellactive= data['low'].iloc[i]*(1-settings['trail_offset_pct'])
-                tslsellactive=data['low'].iloc[i]<sellactive
-
-                 
-                stoplossell = data['high'].iloc[i]>averagesellprice*(1+settings['sl_pct'])
-                prevtrailsell = data['low'].iloc[i]*settings['trail_offset_pct']
-                targetprsell=averagesellprice*(1-settings['tp_pct'])
-                targetsell = data['low'].iloc[i]<targetprsell
-            
-            if tslsellactive:
-                 
-                if (data['low'].iloc[i]>sellactive-prevtrailsell ) and tslsellactive  :
-                        data.loc[i,'exit']= True
-                        data.loc[i,'sellprice']= data['low'].iloc[i]
-
-                        data.loc[i,'Pnl']= averagesellprice-data['low'].iloc[i]
-                        data.loc[i,'drawdown']= float( data['low'].iloc[i])-float(minlowprice)
-
-                        # data.loc[i,'Netpnl']=float( data['Pnl'].iloc[i])-float( data['Commision'].iloc[i])
-
-                        targetsell= False
-                        stoplossell= False
-                        averagesellprice=0
-                        tslsellactive=0
-
-            if stoplossell:
-                    data.loc[i,'exit']= True
-                    data.loc[i,'sellprice']= data['high'].iloc[i]
-
-                    data.loc[i,'Pnl']= averagesellprice-data['high'].iloc[i]
-                    # data.loc[i,'Netpnl']=float( data['Pnl'].iloc[i])-float( data['Commision'].iloc[i])
-                    data.loc[i,'drawdown']= float( data['high'].iloc[i])-float(minlowprice)
-
-
-                    targetsell= False
-                    stoplossell= False
-                    averagesellprice=0
-                    tslsellactive=0
-
-            if targetsell:
-                data.loc[i,'exit']= True
-                data.loc[i,'sellprice']= data['low'].iloc[i]
-                data.loc[i,'Pnl']= averagesellprice-data['low'].iloc[i]
-                # data.loc[i,'Netpnl']=float( data['Pnl'].iloc[i])-float( data['Commision'].iloc[i])
-                data.loc[i,'drawdown']= float( data['low'].iloc[i])-float(minlowprice)
-
-                
-
-                targetsell= False
-                stoplossell= False
-                tslsellactive=0
-                averagesellprice=0
-
-
-                    
-                 
-                 
-            
-        return data
-   
-    def checkpnlbox(self,LTP='',ANGEL=None):
+    
+    def  checkpnlbox(self,LTP='',ANGEL=None):
         try:
             logger.info("Checking SL/TP for open orders")
             settings= self.loadsettings()
@@ -454,40 +312,122 @@ class misc:
             orderobj['TargetHit']= orderobj['TargetHit'].astype('object')      
             orderobj['Commision']= orderobj['Pnl'].astype('float')
             orderobj['Commision']= settings['commision']
-            orderobj['Netpnl']= orderobj['Netpnl'].astype('float')   
+            orderobj['Slhit1']= orderobj['Slhit1'].astype('object')   
+            orderobj['Slhit2']= orderobj['Slhit2'].astype('object')   
+            orderobj['Netpnl']= orderobj['Netpnl'].astype('object')   
 
+            orderobj['TargetHit1']= orderobj['TargetHit1'].astype('object')   
+            orderobj['TargetHit2']= orderobj['TargetHit2'].astype('object') 
+            orderobj['TargetHit3']= orderobj['TargetHit3'].astype('object') 
+            orderobj['TargetHit4']= orderobj['TargetHit4'].astype('object') 
+            orderobj['Ltp']= orderobj['Ltp'].astype('object') 
+
+
+              
+
+
+            
 
             if not orderobjTrue.empty:
                 for i in range(len(orderobjTrue)):
 
                     if orderobjTrue['Status'].iloc[i]:
-                        # ltp= self.checkltp(orderobjTrue['Exchange'].iloc[i],orderobjTrue['Token'].iloc[i],orderobjTrue['Backtest'].iloc[i],LTP,ANGEL)
+                        ltp= self.checkltp(orderobjTrue['Exchange'].iloc[i],orderobjTrue['Token'].iloc[i],orderobjTrue['Backtest'].iloc[i],LTP,ANGEL)
+                        time.sleep(1)
                         # generate random ltp for backtest
-                        ltp =  random.uniform(orderobjTrue['AveragePrice'].iloc[i]*0.9, orderobjTrue['AveragePrice'].iloc[i]*1.1)
+                        # ltp =  random.uniform(orderobjTrue['AveragePrice'].iloc[i]*0.9, orderobjTrue['AveragePrice'].iloc[i]*1.1)
                         # ltp= float(ltp)
                         ind= orderobjTrue.index[i]
                         logger.info(f"Checking SL/TP for orderid {orderobjTrue['Buyorderid'].iloc[i]} with LTP {ltp}")
 
                         orderobj.loc[ind,'Ltp']= ltp
                         
-                        if (ltp<orderobjTrue['AveragePrice'].iloc[i]*(1-settings['sl_pct'])) and (orderobjTrue['Side'].iloc[i]=='LONG'):
-                                orderobj.loc[ind,'Slhit']=True
+                        
+                    # check pnl angel broker
+                        if (orderobjTrue['Pnl'].sum()< -settings['maxloss']) and settings['maxloss']>0:
+                            print('Max loss limit reached, closing all orders','Max loss:',orderobjTrue['Pnl'].sum(),'Max loss setting:',settings['maxloss'])
+                            logger.info(f"Max loss limit reached, closing all orders")
+                            orderobj.loc[:,'Slhit']=True
+                            orderobj.loc[:,'exitqty']= 1
+                            self.orderobjectwrite(newdata=orderobj,newdataflag=True)
+                            # sys.exit(1)
+                            
+                        
+                        
+                        if (ltp<orderobjTrue['AveragePrice'].iloc[i]*(1-settings['stoploss1'])) and (orderobjTrue['Side'].iloc[i]=='LONG') and settings['stoploss1']>0:
+                                orderobj.loc[ind,'Slhit1']=True
+                                orderobj.loc[ind,'exitqty']= settings['stoplossqty1']
+ 
+
+                        
+                        # elif (ltp>orderobjTrue['AveragePrice'].iloc[i]*(1+settings['stoploss1'])) and (orderobjTrue['Side'].iloc[i]=='SHORT') and settings['stoploss1']>0:
+                        #         orderobj.loc[ind,'Slhit1']=True
+                        #         orderobj.loc[ind,'exitqty']= settings['stoplossqty1']
+
+                        
+                        
+                        if (ltp<orderobjTrue['AveragePrice'].iloc[i]*(1-settings['stoploss2'])) and (orderobjTrue['Side'].iloc[i]=='LONG') and settings['stoploss2']>0:
+                                orderobj.loc[ind,'Slhit2']=True
+                                orderobj.loc[ind,'exitqty']= settings['stoplossqty2']
+ 
+                        
+                        
+                        # elif (ltp>orderobjTrue['AveragePrice'].iloc[i]*(1+settings['stoploss2'])) and (orderobjTrue['Side'].iloc[i]=='SHORT') and settings['stoploss2']>0   :
+                        #         orderobj.loc[ind,'Slhit2']=True
+                        #         orderobj.loc[ind,'exitqty']= settings['stoplossqty2']
 
 
-                        
-                        elif (ltp>orderobjTrue['AveragePrice'].iloc[i]*(1+settings['sl_pct'])) and (orderobjTrue['Side'].iloc[i]=='SHORT'):
-                                orderobj.loc[ind,'Slhit']=True
 
-                
+                        if (ltp>orderobjTrue['AveragePrice'].iloc[i]*(1+settings['target1'])) and (orderobjTrue['Side'].iloc[i]=='LONG') and settings['target1']>0:
+                                orderobj.loc[ind,'TargetHit1']=True
+                                orderobj.loc[ind,'exitqty']= settings['targetqty1']
+
                         
-                        if (ltp>orderobjTrue['AveragePrice'].iloc[i]*(1+settings['tp_pct'])) and (orderobjTrue['Side'].iloc[i]=='LONG'):
-                                orderobj.loc[ind,'TargetHit']=True
+                        # elif (ltp<orderobjTrue['AveragePrice'].iloc[i]*(1-settings['target1'])) and (orderobjTrue['Side'].iloc[i]=='SHORT') and settings['target1']>0:
+                        #         orderobj.loc[ind,'TargetHit1']=True
+                        #         orderobj.loc[ind,'exitqty']= settings['targetqty1']
+
+
+
+
+                        if (ltp>orderobjTrue['AveragePrice'].iloc[i]*(1+settings['target2'])) and (orderobjTrue['Side'].iloc[i]=='LONG') and settings['target2']>0:
+                                orderobj.loc[ind,'TargetHit2']=True
+                                orderobj.loc[ind,'exitqty']= settings['targetqty2']
                         
-                        elif (ltp<orderobjTrue['AveragePrice'].iloc[i]*(1-settings['tp_pct'])) and (orderobjTrue['Side'].iloc[i]=='SHORT'):
-                                orderobj.loc[ind,'TargetHit']=True
+                        # elif (ltp<orderobjTrue['AveragePrice'].iloc[i]*(1-settings['target2'])) and (orderobjTrue['Side'].iloc[i]=='SHORT') and settings['target2']>0:
+                        #         orderobj.loc[ind,'TargetHit2']=True
+                        #         orderobj.loc[ind,'exitqty']= settings['targetqty2']
                         
+
+
+                        if (ltp>orderobjTrue['AveragePrice'].iloc[i]*(1+settings['target3'])) and (orderobjTrue['Side'].iloc[i]=='LONG') and settings['target3']>0  :
+                                orderobj.loc[ind,'TargetHit3']=True
+                                orderobj.loc[ind,'exitqty']= settings['targetqty3']
+                        
+                        # elif (ltp<orderobjTrue['AveragePrice'].iloc[i]*(1-settings['target3'])) and (orderobjTrue['Side'].iloc[i]=='SHORT') and settings['target3']>0:
+                        #         orderobj.loc[ind,'TargetHit3']=True
+                        #         orderobj.loc[ind,'exitqty']= settings['targetqty3']
+                        
+
+                        if (ltp>orderobjTrue['AveragePrice'].iloc[i]*(1+settings['target4'])) and (orderobjTrue['Side'].iloc[i]=='LONG') and settings['target4']>0  :
+                                orderobj.loc[ind,'TargetHit4']=True
+                                orderobj.loc[ind,'exitqty']= settings['targetqty4']
+                        
+                        # elif (ltp<orderobjTrue['AveragePrice'].iloc[i]*(1-settings['target4'])) and (orderobjTrue['Side'].iloc[i]=='SHORT') and settings['target4']>0:
+                        #         orderobj.loc[ind,'TargetHit4']=True
+                        #         orderobj.loc[ind,'exitqty']= settings['targetqty4']
+                        
+
+                        if (ltp<orderobjTrue['AveragePrice'].iloc[i]*(1-settings['lockedpl'])) and (orderobjTrue['TargetHit1'].iloc[i] or orderobjTrue['TargetHit2'].iloc[i] or orderobjTrue['TargetHit3'].iloc[i] or orderobjTrue['TargetHit4'].iloc[i]) and (orderobjTrue['Side'].iloc[i]=='LONG') and settings['lockedpl']>0:
+                                orderobj.loc[ind,'Tslhit']=True
+                                orderobj.loc[ind,'exitqty']= 1
+                        
+                        # elif (ltp>orderobjTrue['AveragePrice'].iloc[i]*(1+settings['lockedpl'])) and (orderobjTrue['TargetHit1'].iloc[i] or orderobjTrue['TargetHit2'].iloc[i] or orderobjTrue['TargetHit3'].iloc[i] or orderobjTrue['TargetHit4'].iloc[i]) and (orderobjTrue['Side'].iloc[i]=='SHORT') and settings['lockedpl']>0:
+                        #         orderobj.loc[ind,'Tslhit']=True
+                        #         orderobj.loc[ind,'exitqty']= 1
                         self.orderobjectwrite(newdata=orderobj,newdataflag=True)
 
+                        
                         
                     else:
                          pass
@@ -535,7 +475,14 @@ class misc:
                 ltp= ANGEL.get_quotes(tokenparam)
                 ltp= float(ltp['data']['fetched'][0]['ltp'])
             else:
-                 ltp=LTP
+                if LTP:
+                     ltp= LTP
+                else:
+                     ltp= ANGEL.get_quotes(tokenparam)
+                     ltp= float(ltp['data']['fetched'][0]['ltp'])
+
+                
+                 
                  
             return ltp
 
@@ -590,6 +537,7 @@ class misc:
     def angelcandels(self,symbol):
         credentials = self.cred()
         creddata=credentials['Angelcred']
+        
         api= creddata['api_key'] 
         username=creddata['username']
         pwd = str(creddata['pwd'])
@@ -636,6 +584,7 @@ class misc:
 
             checkltp= ANGEL.get_quotes(tokenparam)
             # print(symbol)
+
         
             ltp = checkltp['data']['fetched'][0]['ltp']
             atm = round(ltp/100)*100
